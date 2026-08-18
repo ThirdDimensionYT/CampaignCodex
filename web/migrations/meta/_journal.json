@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1787061652606,
+      "tag": "0000_amusing_garia",
+      "breakpoints": true
+    }
+  ]
+}
