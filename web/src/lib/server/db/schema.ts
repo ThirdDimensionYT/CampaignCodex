@@ -1,7 +1,15 @@
 import { sql } from 'drizzle-orm';
 import { check, index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
-export const entityTypes = ['character', 'location', 'faction', 'item', 'quest', 'other'] as const;
+export const entityTypes = [
+	'character',
+	'npc',
+	'location',
+	'faction',
+	'item',
+	'quest',
+	'other'
+] as const;
 export const visibilityLevels = ['players', 'dm'] as const;
 export const sessionStatuses = ['draft', 'published'] as const;
 export const importStatuses = ['pending', 'approved', 'rejected', 'failed'] as const;
@@ -81,7 +89,7 @@ export const entities = sqliteTable(
 		index('entities_campaign_type_name_idx').on(table.campaignId, table.type, table.name),
 		check(
 			'entities_type_check',
-			sql`${table.type} in ('character', 'location', 'faction', 'item', 'quest', 'other')`
+			sql`${table.type} in ('character', 'npc', 'location', 'faction', 'item', 'quest', 'other')`
 		),
 		check('entities_visibility_check', sql`${table.visibility} in ('players', 'dm')`)
 	]

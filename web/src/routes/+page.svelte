@@ -7,21 +7,18 @@
 
 <svelte:head>
 	<title>Campaign Codex</title>
-	<meta
-		name="description"
-		content="Session notes and wiki pages for tabletop campaigns"
-	/>
+	<meta name="description" content="Session notes and wiki pages for tabletop campaigns" />
 </svelte:head>
 
 <main class="mx-auto max-w-4xl space-y-8 p-6">
 	<header>
 		<h1 class="text-4xl font-bold">Campaign Codex</h1>
-		<p class="mt-2 text-gray-600">
+		<p class="mt-2 text-gray-600 dark:text-gray-300">
 			Keep your campaign notes, characters and locations organised.
 		</p>
 	</header>
 
-	<section class="rounded-lg border border-gray-200 p-6">
+	<section class="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
 		<h2 class="mb-4 text-2xl font-semibold">Create a campaign</h2>
 
 		{#if form?.message}
@@ -44,7 +41,7 @@
 					name="name"
 					required
 					value={form?.values.name ?? ''}
-					class="w-full rounded border border-gray-300 p-2"
+					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 					placeholder="Name your campaign..."
 				/>
 			</label>
@@ -55,9 +52,8 @@
 					name="description"
 					rows="4"
 					value={form?.values.description ?? ''}
-					class="w-full rounded border border-gray-300 p-2"
-					placeholder="A short description of the campaign..."
-				></textarea>
+					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+					placeholder="A short description of the campaign..."></textarea>
 			</label>
 
 			<button
@@ -73,19 +69,19 @@
 		<h2 class="mb-4 text-2xl font-semibold">Your campaigns</h2>
 
 		{#if data.campaigns.length === 0}
-			<p class="text-gray-600">You haven't created a campaign yet.</p>
+			<p class="text-gray-600 dark:text-gray-300">You haven't created a campaign yet.</p>
 		{:else}
 			<ul class="space-y-3">
 				{#each data.campaigns as campaign}
 					<li>
 						<a
 							href={`/campaigns/${campaign.slug}`}
-							class="block rounded-lg border border-gray-200 p-4 hover:border-purple-400 hover:bg-purple-50"
+							class="block rounded-lg border border-gray-200 p-4 hover:border-purple-400 hover:bg-purple-50 dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-gray-900"
 						>
 							<h3 class="text-xl font-semibold">{campaign.name}</h3>
 
 							{#if campaign.description}
-								<p class="mt-1 text-gray-600">{campaign.description}</p>
+								<p class="mt-1 text-gray-600 dark:text-gray-300">{campaign.description}</p>
 							{/if}
 						</a>
 					</li>

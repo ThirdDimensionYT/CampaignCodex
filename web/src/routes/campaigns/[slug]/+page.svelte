@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { getEntityTypeLabel } from '$lib/entity-types';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -22,21 +23,19 @@
 </svelte:head>
 
 <main class="mx-auto max-w-4xl space-y-8 p-6">
-	<a href="/" class="text-purple-700 hover:underline">
-		← All campaigns
-	</a>
+	<a href="/" class="text-purple-700 hover:underline dark:text-purple-400"> ← All campaigns </a>
 
-	<header class="border-b border-gray-200 pb-6">
+	<header class="border-b border-gray-200 pb-6 dark:border-gray-700">
 		<h1 class="text-4xl font-bold">{data.campaign.name}</h1>
 
 		{#if data.campaign.description}
-			<p class="mt-3 text-lg text-gray-600">
+			<p class="mt-3 text-lg text-gray-600 dark:text-gray-300">
 				{data.campaign.description}
 			</p>
 		{/if}
 	</header>
 
-	<section class="rounded-lg border border-gray-200 p-6">
+	<section class="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
 		<h2 class="mb-4 text-2xl font-semibold">Add session notes</h2>
 
 		{#if form?.message}
@@ -51,12 +50,7 @@
 			</p>
 		{/if}
 
-		<form
-			method="POST"
-			action="?/createSession"
-			use:enhance
-			class="space-y-4"
-		>
+		<form method="POST" action="?/createSession" use:enhance class="space-y-4">
 			<div class="grid gap-4 sm:grid-cols-2">
 				<label class="block">
 					<span class="mb-1 block font-medium">Session number</span>
@@ -66,7 +60,7 @@
 						min="1"
 						required
 						value={form?.values.sessionNumber ?? ''}
-						class="w-full rounded border border-gray-300 p-2"
+						class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 						placeholder="1"
 					/>
 				</label>
@@ -77,7 +71,7 @@
 						type="date"
 						name="sessionDate"
 						value={form?.values.sessionDate ?? ''}
-						class="w-full rounded border border-gray-300 p-2"
+						class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 					/>
 				</label>
 			</div>
@@ -89,7 +83,7 @@
 					name="title"
 					required
 					value={form?.values.title ?? ''}
-					class="w-full rounded border border-gray-300 p-2"
+					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 					placeholder="Arrival at the ruined keep"
 				/>
 			</label>
@@ -100,9 +94,8 @@
 					name="rawNotes"
 					rows="10"
 					value={form?.values.rawNotes ?? ''}
-					class="w-full rounded border border-gray-300 p-2"
-					placeholder="Write or paste your session notes here..."
-				></textarea>
+					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+					placeholder="Write or paste your session notes here..."></textarea>
 			</label>
 
 			<button
@@ -118,31 +111,29 @@
 		<h2 class="mb-4 text-2xl font-semibold">Session history</h2>
 
 		{#if data.sessions.length === 0}
-			<p class="text-gray-600">
-				No session notes have been added yet.
-			</p>
+			<p class="text-gray-600 dark:text-gray-300">No session notes have been added yet.</p>
 		{:else}
 			<div class="space-y-4">
 				{#each data.sessions as session}
-					<article class="rounded-lg border border-gray-200 p-5">
+					<article
+						class="rounded-lg border border-gray-200 p-5 dark:border-gray-700 dark:bg-gray-900"
+					>
 						<div class="flex flex-wrap items-start justify-between gap-2">
 							<h3 class="text-xl font-semibold">
 								Session {session.sessionNumber}: {session.title}
 							</h3>
 
-							<span class="text-sm text-gray-500">
+							<span class="text-sm text-gray-500 dark:text-gray-400">
 								{formatDate(session.sessionDate)}
 							</span>
 						</div>
 
 						{#if session.rawNotes}
-							<p class="mt-4 whitespace-pre-wrap text-gray-700">
+							<p class="mt-4 whitespace-pre-wrap text-gray-700 dark:text-gray-200">
 								{session.rawNotes}
 							</p>
 						{:else}
-							<p class="mt-4 italic text-gray-500">
-								No notes were added.
-							</p>
+							<p class="mt-4 text-gray-500 italic dark:text-gray-400">No notes were added.</p>
 						{/if}
 					</article>
 				{/each}
@@ -151,36 +142,56 @@
 	</section>
 
 	<section>
-		<h2 class="mb-4 text-2xl font-semibold">Campaign Wiki</h2>
+		<div class="mb-4 flex items-center justify-between gap-4">
+			<h2 class="text-2xl font-semibold">Campaign Wiki</h2>
 
-		<div class="grid gap-4 sm:grid-cols-2">
-			<article class="rounded-lg border border-gray-200 p-5">
-				<h3 class="text-xl font-semibold">Characters</h3>
-				<p class="mt-2 text-gray-600">
-					Player characters and NPCs will appear here.
-				</p>
-			</article>
-
-			<article class="rounded-lg border border-gray-200 p-5">
-				<h3 class="text-xl font-semibold">Locations</h3>
-				<p class="mt-2 text-gray-600">
-					Cities, regions and landmarks will appear here.
-				</p>
-			</article>
-
-			<article class="rounded-lg border border-gray-200 p-5">
-				<h3 class="text-xl font-semibold">Quests</h3>
-				<p class="mt-2 text-gray-600">
-					Ongoing and completed quests will appear here.
-				</p>
-			</article>
-
-			<article class="rounded-lg border border-gray-200 p-5">
-				<h3 class="text-xl font-semibold">Factions</h3>
-				<p class="mt-2 text-gray-600">
-					Important organisations will appear here.
-				</p>
-			</article>
+			<a
+				href={`/campaigns/${data.campaign.slug}/wiki/new`}
+				class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
+			>
+				Add wiki entry
+			</a>
 		</div>
+
+		{#if data.entities.length === 0}
+			<p class="text-gray-600 dark:text-gray-300">No wiki entries have been added yet.</p>
+		{:else}
+			<div class="grid gap-4 sm:grid-cols-2">
+				{#each data.entities as entity}
+					<a
+						href={`/campaigns/${data.campaign.slug}/wiki/${entity.slug}`}
+						class="block rounded-lg border border-gray-200 p-5 hover:border-purple-400 hover:bg-purple-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-purple-500 dark:hover:bg-gray-800"
+					>
+						<div class="flex items-start justify-between gap-3">
+							<span
+								class="text-xs font-semibold tracking-wide text-purple-700 uppercase dark:text-purple-400"
+							>
+								{getEntityTypeLabel(entity.type)}
+							</span>
+
+							{#if entity.visibility === 'dm'}
+								<span
+									class="rounded bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-200"
+								>
+									DM only
+								</span>
+							{/if}
+						</div>
+
+						<h3 class="mt-2 text-xl font-semibold">
+							{entity.name}
+						</h3>
+
+						{#if entity.summary}
+							<p class="mt-2 text-gray-600 dark:text-gray-300">
+								{entity.summary}
+							</p>
+						{:else}
+							<p class="mt-2 text-gray-500 italic dark:text-gray-400">No summary added.</p>
+						{/if}
+					</a>
+				{/each}
+			</div>
+		{/if}
 	</section>
 </main>

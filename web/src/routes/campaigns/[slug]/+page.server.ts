@@ -1,8 +1,8 @@
 import { error, fail } from '@sveltejs/kit';
-import { desc, eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 
 import { getDb } from '$lib/server/db';
-import { campaigns, sessions } from '$lib/server/db/schema';
+import { campaigns, entities, sessions } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
 
@@ -35,10 +35,17 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 		.where(eq(sessions.campaignId, campaign.id))
 		.orderBy(desc(sessions.sessionNumber));
 
-	return {
-		campaign,
-		sessions: sessionList
-	};
+    const entityList = await db
+        .select()
+        .from(entities)
+        .where(eq(entities.campaignId, campaign.id))
+        .orderBy(asc(entities.type), asc(entities.name));
+
+    return {
+        campaign,
+        sessions: sessionList,
+        entities: entityList
+    };
 };
 
 export const actions = {
