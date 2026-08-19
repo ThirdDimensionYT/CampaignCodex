@@ -38,77 +38,79 @@
 		{/if}
 	</header>
 
-	<section class="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
-		<h2 class="mb-4 text-2xl font-semibold">Add session notes</h2>
+	{#if data.isOwner}
+		<section class="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
+			<h2 class="mb-4 text-2xl font-semibold">Add session notes</h2>
 
-		{#if form?.message}
-			<p
-				class="mb-4 rounded p-3"
-				class:bg-green-100={form.success}
-				class:text-green-800={form.success}
-				class:bg-red-100={!form.success}
-				class:text-red-800={!form.success}
-			>
-				{form.message}
-			</p>
-		{/if}
+			{#if form?.message}
+				<p
+					class="mb-4 rounded p-3"
+					class:bg-green-100={form.success}
+					class:text-green-800={form.success}
+					class:bg-red-100={!form.success}
+					class:text-red-800={!form.success}
+				>
+					{form.message}
+				</p>
+			{/if}
 
-		<form method="POST" action="?/createSession" use:enhance class="space-y-4">
-			<div class="grid gap-4 sm:grid-cols-2">
+			<form method="POST" action="?/createSession" use:enhance class="space-y-4">
+				<div class="grid gap-4 sm:grid-cols-2">
+					<label class="block">
+						<span class="mb-1 block font-medium">Session number</span>
+						<input
+							type="number"
+							name="sessionNumber"
+							min="1"
+							required
+							value={form?.values.sessionNumber ?? ''}
+							class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+							placeholder="1"
+						/>
+					</label>
+
+					<label class="block">
+						<span class="mb-1 block font-medium">Session date</span>
+						<input
+							type="date"
+							name="sessionDate"
+							value={form?.values.sessionDate ?? ''}
+							class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+						/>
+					</label>
+				</div>
+
 				<label class="block">
-					<span class="mb-1 block font-medium">Session number</span>
+					<span class="mb-1 block font-medium">Session title</span>
 					<input
-						type="number"
-						name="sessionNumber"
-						min="1"
+						type="text"
+						name="title"
 						required
-						value={form?.values.sessionNumber ?? ''}
+						value={form?.values.title ?? ''}
 						class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-						placeholder="1"
+						placeholder="Arrival at the ruined keep"
 					/>
 				</label>
 
 				<label class="block">
-					<span class="mb-1 block font-medium">Session date</span>
-					<input
-						type="date"
-						name="sessionDate"
-						value={form?.values.sessionDate ?? ''}
+					<span class="mb-1 block font-medium">Notes</span>
+					<textarea
+						name="rawNotes"
+						rows="10"
+						value={form?.values.rawNotes ?? ''}
 						class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-					/>
+						placeholder="Write or paste your session notes here..."></textarea>
 				</label>
-			</div>
 
-			<label class="block">
-				<span class="mb-1 block font-medium">Session title</span>
-				<input
-					type="text"
-					name="title"
-					required
-					value={form?.values.title ?? ''}
-					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-					placeholder="Arrival at the ruined keep"
-				/>
-			</label>
-
-			<label class="block">
-				<span class="mb-1 block font-medium">Notes</span>
-				<textarea
-					name="rawNotes"
-					rows="10"
-					value={form?.values.rawNotes ?? ''}
-					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-					placeholder="Write or paste your session notes here..."></textarea>
-			</label>
-
-			<button
-				type="submit"
-				class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
-			>
-				Save session
-			</button>
-		</form>
-	</section>
+				<button
+					type="submit"
+					class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
+				>
+					Save session
+				</button>
+			</form>
+		</section>
+	{/if}
 
 	<section>
 		<h2 class="mb-4 text-2xl font-semibold">Session history</h2>
@@ -148,14 +150,16 @@
 		<div class="mb-4 flex items-center justify-between gap-4">
 			<h2 class="text-2xl font-semibold">Campaign Wiki</h2>
 
-			<a
-				href={resolve('/campaigns/[slug]/wiki/new', {
-					slug: data.campaign.slug
-				})}
-				class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
-			>
-				Add wiki entry
-			</a>
+			{#if data.isOwner}
+				<a
+					href={resolve('/campaigns/[slug]/wiki/new', {
+						slug: data.campaign.slug
+					})}
+					class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
+				>
+					Add wiki entry
+				</a>
+			{/if}
 		</div>
 
 		{#if data.entities.length === 0}

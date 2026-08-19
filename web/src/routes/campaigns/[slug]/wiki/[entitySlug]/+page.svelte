@@ -22,15 +22,17 @@
 			← Back to {data.campaign.name}
 		</a>
 
-		<a
-			href={resolve('/campaigns/[slug]/wiki/[entitySlug]/edit', {
-				slug: data.campaign.slug,
-				entitySlug: data.entity.slug
-			})}
-			class="rounded border border-purple-700 px-4 py-2 font-medium text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-gray-800"
-		>
-			Edit entry
-		</a>
+		{#if data.isOwner}
+			<a
+				href={resolve('/campaigns/[slug]/wiki/[entitySlug]/edit', {
+					slug: data.campaign.slug,
+					entitySlug: data.entity.slug
+				})}
+				class="rounded border border-purple-700 px-4 py-2 font-medium text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-gray-800"
+			>
+				Edit entry
+			</a>
+		{/if}
 	</nav>
 
 	<article>

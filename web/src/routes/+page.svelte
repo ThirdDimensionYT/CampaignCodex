@@ -19,52 +19,54 @@
 		</p>
 	</header>
 
-	<section class="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
-		<h2 class="mb-4 text-2xl font-semibold">Create a campaign</h2>
+	{#if data.isOwner}
+		<section class="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
+			<h2 class="mb-4 text-2xl font-semibold">Create a campaign</h2>
 
-		{#if form?.message}
-			<p
-				class="mb-4 rounded p-3"
-				class:bg-green-100={form.success}
-				class:text-green-800={form.success}
-				class:bg-red-100={!form.success}
-				class:text-red-800={!form.success}
-			>
-				{form.message}
-			</p>
-		{/if}
+			{#if form?.message}
+				<p
+					class="mb-4 rounded p-3"
+					class:bg-green-100={form.success}
+					class:text-green-800={form.success}
+					class:bg-red-100={!form.success}
+					class:text-red-800={!form.success}
+				>
+					{form.message}
+				</p>
+			{/if}
 
-		<form method="POST" action="?/create" use:enhance class="space-y-4">
-			<label class="block">
-				<span class="mb-1 block font-medium">Campaign name</span>
-				<input
-					type="text"
-					name="name"
-					required
-					value={form?.values.name ?? ''}
-					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-					placeholder="Name your campaign..."
-				/>
-			</label>
+			<form method="POST" action="?/create" use:enhance class="space-y-4">
+				<label class="block">
+					<span class="mb-1 block font-medium">Campaign name</span>
+					<input
+						type="text"
+						name="name"
+						required
+						value={form?.values.name ?? ''}
+						class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+						placeholder="Name your campaign..."
+					/>
+				</label>
 
-			<label class="block">
-				<span class="mb-1 block font-medium">Description</span>
-				<textarea
-					name="description"
-					rows="4"
-					value={form?.values.description ?? ''}
-					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-					placeholder="A short description of the campaign..."></textarea>
-			</label>
+				<label class="block">
+					<span class="mb-1 block font-medium">Description</span>
+					<textarea
+						name="description"
+						rows="4"
+						value={form?.values.description ?? ''}
+						class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+						placeholder="A short description of the campaign..."></textarea>
+				</label>
 
-			<button
-				type="submit"
-				class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
-			>
-				Create campaign
-			</button>
-		</form>
-	</section>
+				<button
+					type="submit"
+					class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
+				>
+					Create campaign
+				</button>
+			</form>
+		</section>
+	{/if}
 
 	<section>
 		<h2 class="mb-4 text-2xl font-semibold">Your campaigns</h2>
