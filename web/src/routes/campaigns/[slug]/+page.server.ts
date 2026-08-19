@@ -1,8 +1,8 @@
 import { error, fail } from '@sveltejs/kit';
-import { asc, desc, eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 import { requireCampaignAccess, requireOwner } from '$lib/server/auth/guards';
-import { campaigns, entities, sessions } from '$lib/server/db/schema';
+import { campaigns, sessions } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
 
@@ -15,16 +15,9 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 		.where(eq(sessions.campaignId, campaign.id))
 		.orderBy(desc(sessions.sessionNumber));
 
-	const entityList = await db
-		.select()
-		.from(entities)
-		.where(eq(entities.campaignId, campaign.id))
-		.orderBy(asc(entities.type), asc(entities.name));
-
 	return {
 		campaign,
-		sessions: sessionList,
-		entities: entityList
+		sessions: sessionList
 	};
 };
 

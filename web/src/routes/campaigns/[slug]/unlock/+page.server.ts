@@ -46,11 +46,11 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 	const session = await readAccessSession(db, cookies);
 
 	if (session?.isOwner) {
-		redirect(303, `/campaigns/${campaign.slug}`);
+		redirect(303, `/campaigns/${campaign.slug}/wiki`);
 	}
 
 	if (credential && (await hasCampaignAccess(db, session, campaign.id, credential.accessVersion))) {
-		redirect(303, `/campaigns/${campaign.slug}`);
+		redirect(303, `/campaigns/${campaign.slug}/wiki`);
 	}
 
 	return {
@@ -106,7 +106,7 @@ export const actions = {
 		let session = await readAccessSession(db, cookies);
 
 		if (session?.isOwner) {
-			redirect(303, `/campaigns/${campaign.slug}`);
+			redirect(303, `/campaigns/${campaign.slug}/wiki`);
 		}
 
 		const passphraseIsCorrect = await verifyCampaignPassphrase(
@@ -129,6 +129,6 @@ export const actions = {
 
 		await grantCampaignAccess(db, session.id, campaign.id, credential.accessVersion);
 
-		redirect(303, `/campaigns/${campaign.slug}`);
+		redirect(303, `/campaigns/${campaign.slug}/wiki`);
 	}
 } satisfies Actions;

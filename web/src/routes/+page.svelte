@@ -78,7 +78,7 @@
 				{#each data.campaigns as campaign (campaign.id)}
 					<li>
 						<a
-							href={resolve('/campaigns/[slug]', { slug: campaign.slug })}
+							href={resolve('/campaigns/[slug]/wiki', { slug: campaign.slug })}
 							class="block rounded-lg border border-gray-200 p-4 hover:border-purple-400 hover:bg-purple-50 dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-gray-900"
 						>
 							<h3 class="text-xl font-semibold">{campaign.name}</h3>

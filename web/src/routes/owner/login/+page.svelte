@@ -4,6 +4,7 @@
 	import type { PageProps } from './$types';
 
 	let { form }: PageProps = $props();
+	let showPassword = $state(false);
 </script>
 
 <svelte:head>
@@ -33,12 +34,21 @@
 			<span class="mb-1 block font-medium">Owner password</span>
 
 			<input
-				type="password"
+				type={showPassword ? 'text' : 'password'}
 				name="password"
 				required
 				autocomplete="current-password"
 				class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 			/>
+		</label>
+
+		<label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+			<input
+				type="checkbox"
+				bind:checked={showPassword}
+				class="rounded border-gray-300 text-purple-700 focus:ring-purple-600 dark:border-gray-700 dark:bg-gray-900"
+			/>
+			Show password
 		</label>
 
 		<button

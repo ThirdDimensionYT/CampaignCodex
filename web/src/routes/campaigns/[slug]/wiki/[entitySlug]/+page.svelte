@@ -14,12 +14,12 @@
 <main class="mx-auto max-w-3xl space-y-8 p-6">
 	<nav class="flex flex-wrap items-center justify-between gap-4">
 		<a
-			href={resolve('/campaigns/[slug]', {
+			href={resolve('/campaigns/[slug]/wiki', {
 				slug: data.campaign.slug
 			})}
 			class="text-purple-700 hover:underline dark:text-purple-400"
 		>
-			← Back to {data.campaign.name}
+			← Back to Campaign Wiki
 		</a>
 
 		{#if data.isOwner}
