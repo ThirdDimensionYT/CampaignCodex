@@ -11,6 +11,9 @@
 	"observability": {
 		"enabled": true
 	},
+	"secrets": {
+		"required": ["OWNER_PASSWORD", "AUTH_SECRET"]
+	},
 	"upload_source_maps": true,
 	"d1_databases": [
 		{
