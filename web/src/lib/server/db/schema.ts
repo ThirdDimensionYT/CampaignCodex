@@ -41,6 +41,58 @@ export const campaigns = sqliteTable(
 	(table) => [uniqueIndex('campaigns_slug_unique').on(table.slug)]
 );
 
+export const campaignAccessCredentials = sqliteTable(
+	'campaign_access_credentials',
+	{
+		campaignId: text('campaign_id')
+			.primaryKey()
+			.references(() => campaigns.id, { onDelete: 'cascade' }),
+		passphraseHash: text('passphrase_hash').notNull(),
+		passphraseSalt: text('passphrase_salt').notNull(),
+		accessVersion: integer('access_version').notNull().default(1),
+		updatedAt: updatedAt()
+	},
+	(table) => [check('campaign_access_version_check', sql`${table.accessVersion} >= 1`)]
+);
+
+export const accessSessions = sqliteTable(
+	'access_sessions',
+	{
+		id: id(),
+		tokenHash: text('token_hash').notNull(),
+		isOwner: integer('is_owner', { mode: 'boolean' }).notNull().default(false),
+		expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+		createdAt: createdAt()
+	},
+	(table) => [
+		uniqueIndex('access_sessions_token_hash_unique').on(table.tokenHash),
+		index('access_sessions_expires_at_idx').on(table.expiresAt)
+	]
+);
+
+export const campaignAccessGrants = sqliteTable(
+	'campaign_access_grants',
+	{
+		id: id(),
+		accessSessionId: text('access_session_id')
+			.notNull()
+			.references(() => accessSessions.id, { onDelete: 'cascade' }),
+		campaignId: text('campaign_id')
+			.notNull()
+			.references(() => campaigns.id, { onDelete: 'cascade' }),
+		accessVersion: integer('access_version').notNull(),
+		createdAt: createdAt()
+	},
+	(table) => [
+		uniqueIndex('campaign_access_grants_session_campaign_unique').on(
+			table.accessSessionId,
+			table.campaignId
+		),
+		index('campaign_access_grants_campaign_idx').on(table.campaignId),
+		check('campaign_access_grants_version_check', sql`${table.accessVersion} >= 1`)
+	]
+);
+
 export const sessions = sqliteTable(
 	'sessions',
 	{
