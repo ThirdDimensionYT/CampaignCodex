@@ -100,7 +100,9 @@
 							name="sessionNumber"
 							min="1"
 							required
-							value={form?.values.sessionNumber ?? ''}
+							value={form?.success
+								? data.nextSessionNumber
+								: (form?.values?.sessionNumber ?? data.nextSessionNumber)}
 							class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 							placeholder="1"
 						/>
@@ -111,7 +113,7 @@
 						<input
 							type="date"
 							name="sessionDate"
-							value={form?.values.sessionDate ?? ''}
+							value={form?.values?.sessionDate ?? ''}
 							class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 						/>
 					</label>
@@ -123,7 +125,7 @@
 						type="text"
 						name="title"
 						required
-						value={form?.values.title ?? ''}
+						value={form?.values?.title ?? ''}
 						class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 						placeholder="Arrival at the ruined keep"
 					/>
@@ -134,7 +136,7 @@
 					<textarea
 						name="rawNotes"
 						rows="10"
-						value={form?.values.rawNotes ?? ''}
+						value={form?.values?.rawNotes ?? ''}
 						class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 						placeholder="Write or paste your session notes here..."></textarea>
 				</label>
@@ -165,9 +167,45 @@
 								Session {session.sessionNumber}: {session.title}
 							</h3>
 
-							<span class="text-sm text-gray-500 dark:text-gray-400">
-								{formatDate(session.sessionDate)}
-							</span>
+							<div class="flex items-center gap-3">
+								<span class="text-sm text-gray-500 dark:text-gray-400">
+									{formatDate(session.sessionDate)}
+								</span>
+
+								{#if data.isOwner}
+									<a
+										href={resolve('/campaigns/[slug]/sessions/[sessionNumber]/edit', {
+											slug: data.campaign.slug,
+											sessionNumber: String(session.sessionNumber)
+										})}
+										class="font-medium text-purple-700 hover:underline dark:text-purple-400"
+									>
+										Edit
+									</a>
+
+									<form
+										method="POST"
+										action="?/deleteSession"
+										onsubmit={(event) => {
+											if (
+												!globalThis.confirm(
+													`Delete Session ${session.sessionNumber}: ${session.title}? This cannot be undone.`
+												)
+											) {
+												event.preventDefault();
+											}
+										}}
+									>
+										<input type="hidden" name="sessionId" value={session.id} />
+										<button
+											type="submit"
+											class="font-medium text-red-700 hover:underline dark:text-red-400"
+										>
+											Delete
+										</button>
+									</form>
+								{/if}
+							</div>
 						</div>
 
 						{#if session.rawNotes}

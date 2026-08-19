@@ -1,5 +1,5 @@
-import { error, fail } from '@sveltejs/kit';
-import { desc, eq } from 'drizzle-orm';
+import { error, fail, redirect } from '@sveltejs/kit';
+import { and, desc, eq } from 'drizzle-orm';
 
 import { requireCampaignAccess, requireOwner } from '$lib/server/auth/guards';
 import { campaigns, sessions } from '$lib/server/db/schema';
@@ -17,7 +17,8 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 
 	return {
 		campaign,
-		sessions: sessionList
+		sessions: sessionList,
+		nextSessionNumber: (sessionList[0]?.sessionNumber ?? 0) + 1
 	};
 };
 
@@ -114,5 +115,47 @@ export const actions = {
 				rawNotes: ''
 			}
 		};
+	},
+	deleteSession: async ({ cookies, request, params, platform }) => {
+		const db = await requireOwner(platform, cookies);
+		const formData = await request.formData();
+		const sessionId = String(formData.get('sessionId') ?? '').trim();
+
+		const campaignResults = await db
+			.select()
+			.from(campaigns)
+			.where(eq(campaigns.slug, params.slug))
+			.limit(1);
+
+		const campaign = campaignResults[0];
+
+		if (!campaign) {
+			error(404, 'Campaign not found.');
+		}
+
+		const sessionResults = await db
+			.select({ id: sessions.id })
+			.from(sessions)
+			.where(and(eq(sessions.id, sessionId), eq(sessions.campaignId, campaign.id)))
+			.limit(1);
+
+		const session = sessionResults[0];
+
+		if (!session) {
+			error(404, 'Session not found.');
+		}
+
+		try {
+			await db.delete(sessions).where(eq(sessions.id, session.id));
+		} catch (caught) {
+			console.error('Session deletion failed:', caught instanceof Error ? caught.message : caught);
+
+			return fail(500, {
+				success: false,
+				message: 'The session could not be deleted. Please try again.'
+			});
+		}
+
+		redirect(303, `/campaigns/${campaign.slug}`);
 	}
 } satisfies Actions;
