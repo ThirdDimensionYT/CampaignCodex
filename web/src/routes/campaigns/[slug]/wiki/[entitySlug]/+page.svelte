@@ -41,14 +41,6 @@
 				>
 					{getEntityTypeLabel(data.entity.type)}
 				</span>
-
-				{#if data.entity.visibility === 'dm'}
-					<span
-						class="rounded bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-200"
-					>
-						DM only
-					</span>
-				{/if}
 			</div>
 
 			<h1 class="mt-3 text-4xl font-bold">

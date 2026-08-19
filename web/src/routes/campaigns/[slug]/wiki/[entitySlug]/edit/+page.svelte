@@ -39,38 +39,23 @@
 	{/if}
 
 	<form method="POST" use:enhance class="space-y-5">
-		<div class="grid gap-4 sm:grid-cols-2">
-			<label class="block">
-				<span class="mb-1 block font-medium">Entry type</span>
+		<label class="block">
+			<span class="mb-1 block font-medium">Entry type</span>
 
-				<select
-					name="type"
-					value={form?.values.type ?? data.entity.type}
-					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-				>
-					<option value="character">{getEntityTypeLabel('character')}</option>
-					<option value="npc">{getEntityTypeLabel('npc')}</option>
-					<option value="location">{getEntityTypeLabel('location')}</option>
-					<option value="faction">{getEntityTypeLabel('faction')}</option>
-					<option value="item">{getEntityTypeLabel('item')}</option>
-					<option value="quest">{getEntityTypeLabel('quest')}</option>
-					<option value="other">{getEntityTypeLabel('other')}</option>
-				</select>
-			</label>
-
-			<label class="block">
-				<span class="mb-1 block font-medium">Visibility</span>
-
-				<select
-					name="visibility"
-					value={form?.values.visibility ?? data.entity.visibility}
-					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-				>
-					<option value="players">Visible to players</option>
-					<option value="dm">DM only</option>
-				</select>
-			</label>
-		</div>
+			<select
+				name="type"
+				value={form?.values.type ?? data.entity.type}
+				class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+			>
+				<option value="character">{getEntityTypeLabel('character')}</option>
+				<option value="npc">{getEntityTypeLabel('npc')}</option>
+				<option value="location">{getEntityTypeLabel('location')}</option>
+				<option value="faction">{getEntityTypeLabel('faction')}</option>
+				<option value="item">{getEntityTypeLabel('item')}</option>
+				<option value="quest">{getEntityTypeLabel('quest')}</option>
+				<option value="other">{getEntityTypeLabel('other')}</option>
+			</select>
+		</label>
 
 		<label class="block">
 			<span class="mb-1 block font-medium">Name</span>

@@ -10,7 +10,6 @@ export const entityTypes = [
 	'quest',
 	'other'
 ] as const;
-export const visibilityLevels = ['players', 'dm'] as const;
 export const sessionStatuses = ['draft', 'published'] as const;
 export const importStatuses = ['pending', 'approved', 'rejected', 'failed'] as const;
 
@@ -77,7 +76,6 @@ export const entities = sqliteTable(
 		slug: text('slug').notNull(),
 		summary: text('summary').notNull().default(''),
 		content: text('content').notNull().default(''),
-		visibility: text('visibility', { enum: visibilityLevels }).notNull().default('players'),
 		firstSessionId: text('first_session_id').references(() => sessions.id, {
 			onDelete: 'set null'
 		}),
@@ -90,8 +88,7 @@ export const entities = sqliteTable(
 		check(
 			'entities_type_check',
 			sql`${table.type} in ('character', 'npc', 'location', 'faction', 'item', 'quest', 'other')`
-		),
-		check('entities_visibility_check', sql`${table.visibility} in ('players', 'dm')`)
+		)
 	]
 );
 

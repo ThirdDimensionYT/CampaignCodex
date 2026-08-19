@@ -2,12 +2,11 @@ import { error, fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
 import { getDb } from '$lib/server/db';
-import { campaigns, entities, entityTypes, visibilityLevels } from '$lib/server/db/schema';
+import { campaigns, entities, entityTypes } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
 
 type EntityType = (typeof entityTypes)[number];
-type Visibility = (typeof visibilityLevels)[number];
 
 function openDatabase(platform: App.Platform | undefined) {
 	if (!platform) {
@@ -27,10 +26,6 @@ function makeSlug(name: string): string {
 
 function isEntityType(value: string): value is EntityType {
 	return entityTypes.includes(value as EntityType);
-}
-
-function isVisibility(value: string): value is Visibility {
-	return visibilityLevels.includes(value as Visibility);
 }
 
 export const load: PageServerLoad = async ({ params, platform }) => {
@@ -71,14 +66,12 @@ export const actions = {
 		const name = String(formData.get('name') ?? '').trim();
 		const summary = String(formData.get('summary') ?? '').trim();
 		const content = String(formData.get('content') ?? '').trim();
-		const visibility = String(formData.get('visibility') ?? 'players');
 
 		const values = {
 			type: entityType,
 			name,
 			summary,
-			content,
-			visibility
+			content
 		};
 
 		if (!isEntityType(entityType)) {
@@ -93,14 +86,6 @@ export const actions = {
 			return fail(400, {
 				success: false,
 				message: 'Please enter a name for this wiki entry.',
-				values
-			});
-		}
-
-		if (!isVisibility(visibility)) {
-			return fail(400, {
-				success: false,
-				message: 'Please select a valid visibility.',
 				values
 			});
 		}
@@ -122,8 +107,7 @@ export const actions = {
 				name,
 				slug,
 				summary,
-				content,
-				visibility
+				content
 			});
 		} catch (caught) {
 			console.error(
@@ -145,8 +129,7 @@ export const actions = {
 				type: 'character',
 				name: '',
 				summary: '',
-				content: '',
-				visibility: 'players'
+				content: ''
 			}
 		};
 	}
