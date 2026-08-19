@@ -35,17 +35,17 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 		.where(eq(sessions.campaignId, campaign.id))
 		.orderBy(desc(sessions.sessionNumber));
 
-    const entityList = await db
-        .select()
-        .from(entities)
-        .where(eq(entities.campaignId, campaign.id))
-        .orderBy(asc(entities.type), asc(entities.name));
+	const entityList = await db
+		.select()
+		.from(entities)
+		.where(eq(entities.campaignId, campaign.id))
+		.orderBy(asc(entities.type), asc(entities.name));
 
-    return {
-        campaign,
-        sessions: sessionList,
-        entities: entityList
-    };
+	return {
+		campaign,
+		sessions: sessionList,
+		entities: entityList
+	};
 };
 
 export const actions = {
@@ -66,9 +66,7 @@ export const actions = {
 
 		const formData = await request.formData();
 
-		const sessionNumberText = String(
-			formData.get('sessionNumber') ?? ''
-		).trim();
+		const sessionNumberText = String(formData.get('sessionNumber') ?? '').trim();
 
 		const title = String(formData.get('title') ?? '').trim();
 		const sessionDateText = String(formData.get('sessionDate') ?? '').trim();
@@ -124,10 +122,7 @@ export const actions = {
 				rawNotes
 			});
 		} catch (caught) {
-			console.error(
-				'Session creation failed:',
-				caught instanceof Error ? caught.message : caught
-			);
+			console.error('Session creation failed:', caught instanceof Error ? caught.message : caught);
 
 			return fail(409, {
 				success: false,

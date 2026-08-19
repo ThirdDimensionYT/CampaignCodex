@@ -13,8 +13,7 @@
 
 		darkMode =
 			savedTheme === 'dark' ||
-			(savedTheme === null &&
-				window.matchMedia('(prefers-color-scheme: dark)').matches);
+			(savedTheme === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
 		document.documentElement.classList.toggle('dark', darkMode);
 	});

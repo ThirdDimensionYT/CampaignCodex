@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import { getEntityTypeLabel } from '$lib/entity-types';
 	import type { PageProps } from './$types';
 
@@ -23,7 +24,9 @@
 </svelte:head>
 
 <main class="mx-auto max-w-4xl space-y-8 p-6">
-	<a href="/" class="text-purple-700 hover:underline dark:text-purple-400"> ← All campaigns </a>
+	<a href={resolve('/')} class="text-purple-700 hover:underline dark:text-purple-400">
+		← All campaigns
+	</a>
 
 	<header class="border-b border-gray-200 pb-6 dark:border-gray-700">
 		<h1 class="text-4xl font-bold">{data.campaign.name}</h1>
@@ -114,7 +117,7 @@
 			<p class="text-gray-600 dark:text-gray-300">No session notes have been added yet.</p>
 		{:else}
 			<div class="space-y-4">
-				{#each data.sessions as session}
+				{#each data.sessions as session (session.id)}
 					<article
 						class="rounded-lg border border-gray-200 p-5 dark:border-gray-700 dark:bg-gray-900"
 					>
@@ -146,7 +149,9 @@
 			<h2 class="text-2xl font-semibold">Campaign Wiki</h2>
 
 			<a
-				href={`/campaigns/${data.campaign.slug}/wiki/new`}
+				href={resolve('/campaigns/[slug]/wiki/new', {
+					slug: data.campaign.slug
+				})}
 				class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
 			>
 				Add wiki entry
@@ -157,9 +162,12 @@
 			<p class="text-gray-600 dark:text-gray-300">No wiki entries have been added yet.</p>
 		{:else}
 			<div class="grid gap-4 sm:grid-cols-2">
-				{#each data.entities as entity}
+				{#each data.entities as entity (entity.id)}
 					<a
-						href={`/campaigns/${data.campaign.slug}/wiki/${entity.slug}`}
+						href={resolve('/campaigns/[slug]/wiki/[entitySlug]', {
+							slug: data.campaign.slug,
+							entitySlug: entity.slug
+						})}
 						class="block rounded-lg border border-gray-200 p-5 hover:border-purple-400 hover:bg-purple-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-purple-500 dark:hover:bg-gray-800"
 					>
 						<div class="flex items-start justify-between gap-3">

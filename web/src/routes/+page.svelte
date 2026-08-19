@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -72,10 +73,10 @@
 			<p class="text-gray-600 dark:text-gray-300">You haven't created a campaign yet.</p>
 		{:else}
 			<ul class="space-y-3">
-				{#each data.campaigns as campaign}
+				{#each data.campaigns as campaign (campaign.id)}
 					<li>
 						<a
-							href={`/campaigns/${campaign.slug}`}
+							href={resolve('/campaigns/[slug]', { slug: campaign.slug })}
 							class="block rounded-lg border border-gray-200 p-4 hover:border-purple-400 hover:bg-purple-50 dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-gray-900"
 						>
 							<h3 class="text-xl font-semibold">{campaign.name}</h3>

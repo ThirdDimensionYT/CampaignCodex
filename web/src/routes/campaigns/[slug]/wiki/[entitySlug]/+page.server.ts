@@ -28,12 +28,7 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 	const entityResults = await db
 		.select()
 		.from(entities)
-		.where(
-			and(
-				eq(entities.campaignId, campaign.id),
-				eq(entities.slug, params.entitySlug)
-			)
-		)
+		.where(and(eq(entities.campaignId, campaign.id), eq(entities.slug, params.entitySlug)))
 		.limit(1);
 
 	const entity = entityResults[0];

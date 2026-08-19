@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { getEntityTypeLabel } from '$lib/entity-types';
 	import type { PageProps } from './$types';
 
@@ -11,12 +12,26 @@
 </svelte:head>
 
 <main class="mx-auto max-w-3xl space-y-8 p-6">
-	<a
-		href={`/campaigns/${data.campaign.slug}`}
-		class="text-purple-700 hover:underline dark:text-purple-400"
-	>
-		← Back to {data.campaign.name}
-	</a>
+	<nav class="flex flex-wrap items-center justify-between gap-4">
+		<a
+			href={resolve('/campaigns/[slug]', {
+				slug: data.campaign.slug
+			})}
+			class="text-purple-700 hover:underline dark:text-purple-400"
+		>
+			← Back to {data.campaign.name}
+		</a>
+
+		<a
+			href={resolve('/campaigns/[slug]/wiki/[entitySlug]/edit', {
+				slug: data.campaign.slug,
+				entitySlug: data.entity.slug
+			})}
+			class="rounded border border-purple-700 px-4 py-2 font-medium text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-gray-800"
+		>
+			Edit entry
+		</a>
+	</nav>
 
 	<article>
 		<header class="border-b border-gray-200 pb-6 dark:border-gray-700">

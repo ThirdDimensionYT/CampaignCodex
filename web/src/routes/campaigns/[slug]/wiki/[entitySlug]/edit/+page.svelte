@@ -8,34 +8,32 @@
 </script>
 
 <svelte:head>
-	<title>New wiki entry | {data.campaign.name}</title>
+	<title>Edit {data.entity.name} | Campaign Codex</title>
 </svelte:head>
 
 <main class="mx-auto max-w-3xl space-y-6 p-6">
 	<a
-		href={resolve('/campaigns/[slug]', {
-			slug: data.campaign.slug
+		href={resolve('/campaigns/[slug]/wiki/[entitySlug]', {
+			slug: data.campaign.slug,
+			entitySlug: data.entity.slug
 		})}
 		class="text-purple-700 hover:underline dark:text-purple-400"
 	>
-		← Back to {data.campaign.name}
+		← Cancel editing
 	</a>
 
 	<header>
-		<h1 class="text-3xl font-bold">Add a wiki entry</h1>
-		<p class="mt-2 text-gray-600 dark:text-gray-300">
-			Create a character, location, faction, item or quest.
+		<p class="font-semibold text-purple-700 dark:text-purple-400">
+			{data.campaign.name}
 		</p>
+
+		<h1 class="mt-2 text-3xl font-bold">
+			Edit {data.entity.name}
+		</h1>
 	</header>
 
 	{#if form?.message}
-		<p
-			class="rounded p-3"
-			class:bg-green-100={form.success}
-			class:text-green-800={form.success}
-			class:bg-red-100={!form.success}
-			class:text-red-800={!form.success}
-		>
+		<p class="rounded bg-red-100 p-3 text-red-800 dark:bg-red-950 dark:text-red-200">
 			{form.message}
 		</p>
 	{/if}
@@ -47,7 +45,7 @@
 
 				<select
 					name="type"
-					value={form?.values.type ?? 'character'}
+					value={form?.values.type ?? data.entity.type}
 					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 				>
 					<option value="character">{getEntityTypeLabel('character')}</option>
@@ -65,7 +63,7 @@
 
 				<select
 					name="visibility"
-					value={form?.values.visibility ?? 'players'}
+					value={form?.values.visibility ?? data.entity.visibility}
 					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 				>
 					<option value="players">Visible to players</option>
@@ -81,9 +79,8 @@
 				type="text"
 				name="name"
 				required
-				value={form?.values.name ?? ''}
+				value={form?.values.name ?? data.entity.name}
 				class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-				placeholder="Captain Elara Thorn"
 			/>
 		</label>
 
@@ -93,9 +90,8 @@
 			<input
 				type="text"
 				name="summary"
-				value={form?.values.summary ?? ''}
+				value={form?.values.summary ?? data.entity.summary}
 				class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-				placeholder="Commander of the city watch"
 			/>
 		</label>
 
@@ -105,16 +101,16 @@
 			<textarea
 				name="content"
 				rows="12"
-				value={form?.values.content ?? ''}
+				value={form?.values.content ?? data.entity.content}
 				class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-				placeholder="Write everything known about this entry..."></textarea>
+			></textarea>
 		</label>
 
 		<button
 			type="submit"
 			class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
 		>
-			Save wiki entry
+			Save changes
 		</button>
 	</form>
 </main>
