@@ -1,34 +1,13 @@
 import { error, fail } from '@sveltejs/kit';
 import { asc, desc, eq } from 'drizzle-orm';
-import { requireOwner } from '$lib/server/auth/guards';
 
-import { getDb } from '$lib/server/db';
+import { requireCampaignAccess, requireOwner } from '$lib/server/auth/guards';
 import { campaigns, entities, sessions } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
 
-function openDatabase(platform: App.Platform | undefined) {
-	if (!platform) {
-		error(500, 'Cloudflare database binding is unavailable.');
-	}
-
-	return getDb(platform.env.DB);
-}
-
-export const load: PageServerLoad = async ({ params, platform }) => {
-	const db = openDatabase(platform);
-
-	const campaignResults = await db
-		.select()
-		.from(campaigns)
-		.where(eq(campaigns.slug, params.slug))
-		.limit(1);
-
-	const campaign = campaignResults[0];
-
-	if (!campaign) {
-		error(404, 'Campaign not found.');
-	}
+export const load: PageServerLoad = async ({ cookies, params, platform }) => {
+	const { db, campaign } = await requireCampaignAccess(platform, cookies, params.slug);
 
 	const sessionList = await db
 		.select()

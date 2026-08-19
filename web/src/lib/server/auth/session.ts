@@ -1,8 +1,8 @@
 import type { Cookies } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import { getDb } from '$lib/server/db';
-import { accessSessions } from '$lib/server/db/schema';
+import { accessSessions, campaignAccessGrants } from '$lib/server/db/schema';
 
 import { generateSessionToken, hashSessionToken } from './crypto';
 
@@ -101,4 +101,57 @@ export const revokeAccessSession = async (db: Database, cookies: Cookies): Promi
 	}
 
 	removeSessionCookie(cookies);
+};
+
+export const grantCampaignAccess = async (
+	db: Database,
+	accessSessionId: string,
+	campaignId: string,
+	accessVersion: number
+): Promise<void> => {
+	await db
+		.insert(campaignAccessGrants)
+		.values({
+			id: crypto.randomUUID(),
+			accessSessionId,
+			campaignId,
+			accessVersion
+		})
+		.onConflictDoUpdate({
+			target: [campaignAccessGrants.accessSessionId, campaignAccessGrants.campaignId],
+			set: {
+				accessVersion
+			}
+		});
+};
+
+export const hasCampaignAccess = async (
+	db: Database,
+	session: AccessSession | null,
+	campaignId: string,
+	accessVersion: number
+): Promise<boolean> => {
+	if (session?.isOwner) {
+		return true;
+	}
+
+	if (!session) {
+		return false;
+	}
+
+	const grants = await db
+		.select({
+			id: campaignAccessGrants.id
+		})
+		.from(campaignAccessGrants)
+		.where(
+			and(
+				eq(campaignAccessGrants.accessSessionId, session.id),
+				eq(campaignAccessGrants.campaignId, campaignId),
+				eq(campaignAccessGrants.accessVersion, accessVersion)
+			)
+		)
+		.limit(1);
+
+	return grants.length > 0;
 };

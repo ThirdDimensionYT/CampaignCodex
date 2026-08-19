@@ -36,6 +36,17 @@
 				{data.campaign.description}
 			</p>
 		{/if}
+
+		{#if data.isOwner}
+			<a
+				href={resolve('/campaigns/[slug]/access', {
+					slug: data.campaign.slug
+				})}
+				class="mt-4 inline-block rounded border border-purple-700 px-4 py-2 font-medium text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-gray-800"
+			>
+				Player access
+			</a>
+		{/if}
 	</header>
 
 	{#if data.isOwner}
