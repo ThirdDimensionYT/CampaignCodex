@@ -1,20 +1,12 @@
 import { error, fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
-import { getDb } from '$lib/server/db';
+import { requireOwner } from '$lib/server/auth/guards';
 import { campaigns, entities, entityTypes } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
 
 type EntityType = (typeof entityTypes)[number];
-
-function openDatabase(platform: App.Platform | undefined) {
-	if (!platform) {
-		error(500, 'Cloudflare database binding is unavailable.');
-	}
-
-	return getDb(platform.env.DB);
-}
 
 function makeSlug(name: string): string {
 	return name
@@ -28,8 +20,8 @@ function isEntityType(value: string): value is EntityType {
 	return entityTypes.includes(value as EntityType);
 }
 
-export const load: PageServerLoad = async ({ params, platform }) => {
-	const db = openDatabase(platform);
+export const load: PageServerLoad = async ({ cookies, params, platform }) => {
+	const db = await requireOwner(platform, cookies);
 
 	const results = await db.select().from(campaigns).where(eq(campaigns.slug, params.slug)).limit(1);
 
@@ -45,8 +37,8 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 };
 
 export const actions = {
-	default: async ({ request, params, platform }) => {
-		const db = openDatabase(platform);
+	default: async ({ cookies, request, params, platform }) => {
+		const db = await requireOwner(platform, cookies);
 
 		const campaignResults = await db
 			.select()

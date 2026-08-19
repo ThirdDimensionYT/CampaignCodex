@@ -92,10 +92,7 @@ export const readAccessSession = async (
 	return session;
 };
 
-export const revokeAccessSession = async (
-	db: Database,
-	cookies: Cookies
-): Promise<void> => {
+export const revokeAccessSession = async (db: Database, cookies: Cookies): Promise<void> => {
 	const token = cookies.get(SESSION_COOKIE_NAME);
 
 	if (token) {

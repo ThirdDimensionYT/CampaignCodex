@@ -29,16 +29,11 @@ describe('authentication crypto', () => {
 			true
 		);
 
-		expect(await verifyOwnerPassword('wrong-password', 'correct-password', authSecret)).toBe(
-			false
-		);
+		expect(await verifyOwnerPassword('wrong-password', 'correct-password', authSecret)).toBe(false);
 	});
 
 	it('accepts only the correct campaign passphrase', async () => {
-		const credential = await createCampaignPassphraseCredential(
-			'open-sesame',
-			authSecret
-		);
+		const credential = await createCampaignPassphraseCredential('open-sesame', authSecret);
 
 		expect(
 			await verifyCampaignPassphrase(

@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 
-import { getDb } from '$lib/server/db';
+import { requireOwner } from '$lib/server/auth/guards';
 import { campaigns, entities, entityTypes } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -20,12 +20,8 @@ function isEntityType(value: string): value is EntityType {
 	return entityTypes.includes(value as EntityType);
 }
 
-export const load: PageServerLoad = async ({ params, platform }) => {
-	if (!platform) {
-		error(500, 'Cloudflare database binding is unavailable.');
-	}
-
-	const db = getDb(platform.env.DB);
+export const load: PageServerLoad = async ({ cookies, params, platform }) => {
+	const db = await requireOwner(platform, cookies);
 
 	const campaignResults = await db
 		.select()
@@ -58,12 +54,8 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 };
 
 export const actions = {
-	default: async ({ request, params, platform }) => {
-		if (!platform) {
-			error(500, 'Cloudflare database binding is unavailable.');
-		}
-
-		const db = getDb(platform.env.DB);
+	default: async ({ cookies, request, params, platform }) => {
+		const db = await requireOwner(platform, cookies);
 
 		const campaignResults = await db
 			.select()

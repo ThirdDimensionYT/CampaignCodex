@@ -4,10 +4,7 @@ const toBase64Url = (value: ArrayBuffer | Uint8Array): string => {
 	const bytes = value instanceof Uint8Array ? value : new Uint8Array(value);
 	const binary = String.fromCharCode(...bytes);
 
-	return btoa(binary)
-		.replaceAll('+', '-')
-		.replaceAll('/', '_')
-		.replaceAll('=', '');
+	return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 };
 
 const fromBase64Url = (value: string): Uint8Array<ArrayBuffer> => {

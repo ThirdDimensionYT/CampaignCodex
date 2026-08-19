@@ -1,5 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import { asc, desc, eq } from 'drizzle-orm';
+import { requireOwner } from '$lib/server/auth/guards';
 
 import { getDb } from '$lib/server/db';
 import { campaigns, entities, sessions } from '$lib/server/db/schema';
@@ -49,8 +50,8 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 };
 
 export const actions = {
-	createSession: async ({ request, params, platform }) => {
-		const db = openDatabase(platform);
+	createSession: async ({ cookies, request, params, platform }) => {
+		const db = await requireOwner(platform, cookies);
 
 		const campaignResults = await db
 			.select()

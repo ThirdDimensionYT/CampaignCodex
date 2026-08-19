@@ -1,5 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { asc } from 'drizzle-orm';
+import { requireOwner } from '$lib/server/auth/guards';
 
 import { getDb } from '$lib/server/db';
 import { campaigns } from '$lib/server/db/schema';
@@ -33,7 +34,8 @@ export const load: PageServerLoad = async ({ platform }) => {
 };
 
 export const actions = {
-	create: async ({ request, platform }) => {
+	create: async ({ cookies, request, platform }) => {
+		const db = await requireOwner(platform, cookies);
 		const formData = await request.formData();
 
 		const name = String(formData.get('name') ?? '').trim();
@@ -56,8 +58,6 @@ export const actions = {
 				values: { name, description }
 			});
 		}
-
-		const db = openDatabase(platform);
 
 		try {
 			await db.insert(campaigns).values({
