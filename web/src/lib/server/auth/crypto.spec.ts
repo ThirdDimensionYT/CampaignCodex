@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
 	createCampaignPassphraseCredential,
+	createEditorPassphraseCredential,
 	generateSessionToken,
 	hashSessionToken,
 	verifyCampaignPassphrase,
+	verifyEditorPassphrase,
 	verifyOwnerPassword
 } from './crypto';
 
@@ -49,6 +51,28 @@ describe('authentication crypto', () => {
 				'wrong-passphrase',
 				credential.passphraseHash,
 				credential.passphraseSalt,
+				authSecret
+			)
+		).toBe(false);
+	});
+
+	it('keeps editor passphrases separate from player passphrases', async () => {
+		const editorCredential = await createEditorPassphraseCredential('trusted-editor', authSecret);
+
+		expect(
+			await verifyEditorPassphrase(
+				'trusted-editor',
+				editorCredential.passphraseHash,
+				editorCredential.passphraseSalt,
+				authSecret
+			)
+		).toBe(true);
+
+		expect(
+			await verifyCampaignPassphrase(
+				'trusted-editor',
+				editorCredential.passphraseHash,
+				editorCredential.passphraseSalt,
 				authSecret
 			)
 		).toBe(false);

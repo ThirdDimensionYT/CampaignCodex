@@ -49,7 +49,7 @@
 				<h1 class="mt-1 text-4xl font-bold">Campaign Wiki</h1>
 			</div>
 
-			{#if data.isOwner}
+			{#if data.canEdit}
 				<a
 					href={resolve('/campaigns/[slug]/wiki/new', { slug: data.campaign.slug })}
 					class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"

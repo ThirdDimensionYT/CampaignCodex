@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 import { getDb } from '$lib/server/db';
 import { campaignAccessCredentials, campaigns } from '$lib/server/db/schema';
 
-import { hasCampaignAccess, readAccessSession } from './session';
+import { hasCampaignAccess, hasCampaignEditAccess, readAccessSession } from './session';
 
 import type { Cookies } from '@sveltejs/kit';
 
@@ -55,6 +55,13 @@ export const requireCampaignAccess = async (
 		};
 	}
 
+	if (await hasCampaignEditAccess(db, session, campaign.id)) {
+		return {
+			db,
+			campaign
+		};
+	}
+
 	const credentialResults = await db
 		.select({
 			accessVersion: campaignAccessCredentials.accessVersion
@@ -76,4 +83,34 @@ export const requireCampaignAccess = async (
 		db,
 		campaign
 	};
+};
+
+export const requireCampaignEditor = async (
+	platform: App.Platform | undefined,
+	cookies: Cookies,
+	campaignSlug: string
+) => {
+	if (!platform) {
+		error(500, 'Cloudflare database binding is unavailable.');
+	}
+
+	const db = getDb(platform.env.DB);
+	const campaignResults = await db
+		.select({ id: campaigns.id, slug: campaigns.slug })
+		.from(campaigns)
+		.where(eq(campaigns.slug, campaignSlug))
+		.limit(1);
+	const campaign = campaignResults[0];
+
+	if (!campaign) {
+		error(404, 'Campaign not found.');
+	}
+
+	const session = await readAccessSession(db, cookies);
+
+	if (!(await hasCampaignEditAccess(db, session, campaign.id))) {
+		redirect(303, `/campaigns/${campaign.slug}/unlock`);
+	}
+
+	return db;
 };

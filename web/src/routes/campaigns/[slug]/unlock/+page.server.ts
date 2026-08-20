@@ -1,15 +1,21 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
-import { verifyCampaignPassphrase } from '$lib/server/auth/crypto';
+import { verifyCampaignPassphrase, verifyEditorPassphrase } from '$lib/server/auth/crypto';
 import {
 	createAccessSession,
 	grantCampaignAccess,
+	grantCampaignEditorAccess,
 	hasCampaignAccess,
+	hasCampaignEditAccess,
 	readAccessSession
 } from '$lib/server/auth/session';
 import { getDb } from '$lib/server/db';
-import { campaignAccessCredentials, campaigns } from '$lib/server/db/schema';
+import {
+	campaignAccessCredentials,
+	campaignEditorCredentials,
+	campaigns
+} from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
 
@@ -49,13 +55,25 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 		redirect(303, `/campaigns/${campaign.slug}/wiki`);
 	}
 
+	if (await hasCampaignEditAccess(db, session, campaign.id)) {
+		redirect(303, `/campaigns/${campaign.slug}/wiki`);
+	}
+
 	if (credential && (await hasCampaignAccess(db, session, campaign.id, credential.accessVersion))) {
 		redirect(303, `/campaigns/${campaign.slug}/wiki`);
 	}
 
 	return {
 		campaign,
-		hasPassphrase: Boolean(credential)
+		hasPassphrase: Boolean(credential),
+		hasEditorAccess:
+			(
+				await db
+					.select({ id: campaignEditorCredentials.id })
+					.from(campaignEditorCredentials)
+					.where(eq(campaignEditorCredentials.campaignId, campaign.id))
+					.limit(1)
+			).length > 0
 	};
 };
 
@@ -128,6 +146,78 @@ export const actions = {
 		}
 
 		await grantCampaignAccess(db, session.id, campaign.id, credential.accessVersion);
+
+		redirect(303, `/campaigns/${campaign.slug}/wiki`);
+	},
+	editor: async ({ cookies, params, platform, request }) => {
+		if (!platform) {
+			error(500, 'Cloudflare database binding is unavailable.');
+		}
+
+		const db = openDatabase(platform);
+		const formData = await request.formData();
+		const passphrase = String(formData.get('editorPassphrase') ?? '').trim();
+
+		if (!passphrase || passphrase.length > 128) {
+			return fail(400, {
+				success: false,
+				message: 'Please enter a valid editor password.'
+			});
+		}
+
+		const campaignResults = await db
+			.select()
+			.from(campaigns)
+			.where(eq(campaigns.slug, params.slug))
+			.limit(1);
+		const campaign = campaignResults[0];
+
+		if (!campaign) {
+			error(404, 'Campaign not found.');
+		}
+
+		const credentials = await db
+			.select()
+			.from(campaignEditorCredentials)
+			.where(eq(campaignEditorCredentials.campaignId, campaign.id));
+
+		if (credentials.length === 0) {
+			return fail(403, {
+				success: false,
+				message: 'Editor access has not been configured for this campaign.'
+			});
+		}
+
+		const matches = await Promise.all(
+			credentials.map((credential) =>
+				verifyEditorPassphrase(
+					passphrase,
+					credential.passphraseHash,
+					credential.passphraseSalt,
+					platform.env.AUTH_SECRET
+				)
+			)
+		);
+		const credential = credentials[matches.findIndex(Boolean)];
+
+		if (!credential) {
+			return fail(401, {
+				success: false,
+				message: 'The editor password was not recognised.'
+			});
+		}
+
+		let session = await readAccessSession(db, cookies);
+
+		if (session?.isOwner) {
+			redirect(303, `/campaigns/${campaign.slug}/wiki`);
+		}
+
+		if (!session) {
+			session = await createAccessSession(db, cookies, false);
+		}
+
+		await grantCampaignEditorAccess(db, session.id, credential.id, credential.accessVersion);
 
 		redirect(303, `/campaigns/${campaign.slug}/wiki`);
 	}

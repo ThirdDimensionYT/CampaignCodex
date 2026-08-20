@@ -6,14 +6,15 @@
 
 	let { data, form }: PageProps = $props();
 	let showPassphrase = $state(false);
+	let showEditorPassphrase = $state(false);
 </script>
 
 <svelte:head>
-	<title>Player access | {data.campaign.name}</title>
-	<meta name="description" content={`Manage player access to ${data.campaign.name}`} />
+	<title>Access settings | {data.campaign.name}</title>
+	<meta name="description" content={`Manage player and editor access to ${data.campaign.name}`} />
 </svelte:head>
 
-<main class="mx-auto max-w-xl space-y-6 p-6 pt-20">
+<main class="mx-auto max-w-2xl space-y-8 p-6 pt-20">
 	<a
 		href={resolve('/campaigns/[slug]', {
 			slug: data.campaign.slug
@@ -24,11 +25,13 @@
 	</a>
 
 	<header>
-		<h1 class="text-3xl font-bold">Player access</h1>
+		<h1 class="text-3xl font-bold">Access settings</h1>
 		<p class="mt-2 text-gray-600 dark:text-gray-300">
-			Set the passphrase players will use to unlock this campaign.
+			Manage read-only player access and trusted editor access separately.
 		</p>
 	</header>
+
+	<h2 class="text-2xl font-semibold">Player access</h2>
 
 	<div
 		class="rounded border p-4"
@@ -102,4 +105,108 @@
 			{data.hasPassphrase ? 'Change passphrase' : 'Set passphrase'}
 		</button>
 	</form>
+
+	<section class="space-y-5 border-t border-gray-200 pt-8 dark:border-gray-700">
+		<header>
+			<h2 class="text-2xl font-semibold">Editor access</h2>
+			<p class="mt-2 text-gray-600 dark:text-gray-300">
+				Create a separate password for each trusted person. Editors can manage this campaign's
+				sessions and wiki, but cannot change campaign or access settings.
+			</p>
+		</header>
+
+		{#if data.editors.length > 0}
+			<div class="space-y-3">
+				<h3 class="font-semibold">Current editors</h3>
+
+				{#each data.editors as editor (editor.id)}
+					<div
+						class="flex flex-wrap items-center justify-between gap-3 rounded border border-gray-200 p-4 dark:border-gray-700"
+					>
+						<div>
+							<p class="font-medium">{editor.label}</p>
+							<p class="text-sm text-gray-500 dark:text-gray-400">
+								Access created {new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' }).format(
+									editor.createdAt
+								)}
+							</p>
+						</div>
+
+						<form
+							method="POST"
+							action="?/revokeEditor"
+							onsubmit={(event) => {
+								if (!globalThis.confirm(`Revoke editor access for ${editor.label}?`)) {
+									event.preventDefault();
+								}
+							}}
+						>
+							<input type="hidden" name="editorId" value={editor.id} />
+							<button
+								type="submit"
+								class="font-medium text-red-700 hover:underline dark:text-red-400"
+							>
+								Revoke
+							</button>
+						</form>
+					</div>
+				{/each}
+			</div>
+		{/if}
+
+		<form
+			method="POST"
+			action="?/createEditor"
+			use:enhance
+			class="space-y-5 rounded border border-gray-200 p-5 dark:border-gray-700"
+		>
+			<h3 class="text-lg font-semibold">Add an editor</h3>
+
+			<label class="block">
+				<span class="mb-1 block font-medium">Editor name</span>
+				<input
+					type="text"
+					name="label"
+					required
+					minlength="2"
+					maxlength="80"
+					placeholder="Alex (Game Master)"
+					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+				/>
+			</label>
+
+			<label class="block">
+				<span class="mb-1 block font-medium">Editor password</span>
+				<input
+					type={showEditorPassphrase ? 'text' : 'password'}
+					name="editorPassphrase"
+					required
+					minlength="12"
+					maxlength="128"
+					autocomplete="new-password"
+					class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+				/>
+			</label>
+
+			<label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+				<input
+					type="checkbox"
+					bind:checked={showEditorPassphrase}
+					class="rounded border-gray-300 text-purple-700 focus:ring-purple-600 dark:border-gray-700 dark:bg-gray-900"
+				/>
+				Show editor password
+			</label>
+
+			<p class="text-sm text-gray-600 dark:text-gray-300">
+				Use at least 12 characters. Store it safely—the app cannot display it again after saving.
+			</p>
+
+			<button
+				type="submit"
+				class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
+			>
+				Create editor access
+			</button>
+		</form>
+	</section>
 </main>

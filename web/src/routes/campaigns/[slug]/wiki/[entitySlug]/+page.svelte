@@ -22,7 +22,7 @@
 			← Back to Campaign Wiki
 		</a>
 
-		{#if data.isOwner}
+		{#if data.canEdit}
 			<div class="flex flex-wrap gap-3">
 				<a
 					href={resolve('/campaigns/[slug]/wiki/[entitySlug]/edit', {

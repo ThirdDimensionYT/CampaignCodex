@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { and, desc, eq } from 'drizzle-orm';
 
-import { requireOwner } from '$lib/server/auth/guards';
+import { requireCampaignEditor } from '$lib/server/auth/guards';
 import {
 	campaigns,
 	entities,
@@ -41,7 +41,7 @@ function isEntityType(value: string): value is WikiSuggestionType {
 }
 
 async function getCampaignAndSession(
-	db: Awaited<ReturnType<typeof requireOwner>>,
+	db: Awaited<ReturnType<typeof requireCampaignEditor>>,
 	campaignSlug: string,
 	sessionNumberText: string
 ) {
@@ -77,7 +77,7 @@ async function getCampaignAndSession(
 }
 
 export const load: PageServerLoad = async ({ cookies, params, platform }) => {
-	const db = await requireOwner(platform, cookies);
+	const db = await requireCampaignEditor(platform, cookies, params.slug);
 	const { campaign, session } = await getCampaignAndSession(db, params.slug, params.sessionNumber);
 	const importResults = await db
 		.select()
@@ -101,7 +101,7 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 
 export const actions = {
 	generate: async ({ cookies, params, platform }) => {
-		const db = await requireOwner(platform, cookies);
+		const db = await requireCampaignEditor(platform, cookies, params.slug);
 		const { campaign, session } = await getCampaignAndSession(
 			db,
 			params.slug,
@@ -176,7 +176,7 @@ export const actions = {
 		}
 	},
 	apply: async ({ cookies, request, params, platform }) => {
-		const db = await requireOwner(platform, cookies);
+		const db = await requireCampaignEditor(platform, cookies, params.slug);
 		const { campaign, session } = await getCampaignAndSession(
 			db,
 			params.slug,
@@ -358,7 +358,7 @@ export const actions = {
 		redirect(303, `/campaigns/${campaign.slug}/wiki`);
 	},
 	discard: async ({ cookies, request, params, platform }) => {
-		const db = await requireOwner(platform, cookies);
+		const db = await requireCampaignEditor(platform, cookies, params.slug);
 		const { campaign, session } = await getCampaignAndSession(
 			db,
 			params.slug,

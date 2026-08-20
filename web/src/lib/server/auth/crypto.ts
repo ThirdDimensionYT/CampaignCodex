@@ -99,3 +99,41 @@ export const verifyCampaignPassphrase = async (
 		return false;
 	}
 };
+
+export const createEditorPassphraseCredential = async (
+	passphrase: string,
+	authSecret: string
+): Promise<{ passphraseHash: string; passphraseSalt: string }> => {
+	const passphraseSalt = toBase64Url(crypto.getRandomValues(new Uint8Array(16)));
+	const key = await createHmacKey(authSecret);
+	const signature = await crypto.subtle.sign(
+		'HMAC',
+		key,
+		encoder.encode(`campaign-editor-passphrase:v1:${passphraseSalt}:${passphrase}`)
+	);
+
+	return {
+		passphraseHash: toBase64Url(signature),
+		passphraseSalt
+	};
+};
+
+export const verifyEditorPassphrase = async (
+	passphrase: string,
+	passphraseHash: string,
+	passphraseSalt: string,
+	authSecret: string
+): Promise<boolean> => {
+	try {
+		const key = await createHmacKey(authSecret);
+
+		return await crypto.subtle.verify(
+			'HMAC',
+			key,
+			fromBase64Url(passphraseHash),
+			encoder.encode(`campaign-editor-passphrase:v1:${passphraseSalt}:${passphrase}`)
+		);
+	} catch {
+		return false;
+	}
+};

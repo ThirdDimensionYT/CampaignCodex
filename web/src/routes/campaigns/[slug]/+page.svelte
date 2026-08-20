@@ -53,7 +53,7 @@
 					})}
 					class="inline-block rounded border border-purple-700 px-4 py-2 font-medium text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-gray-800"
 				>
-					Player access
+					Access settings
 				</a>
 			</div>
 		{/if}
@@ -75,7 +75,7 @@
 		</a>
 	</nav>
 
-	{#if data.isOwner}
+	{#if data.canEdit}
 		<section class="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
 			<h2 class="mb-4 text-2xl font-semibold">Add session notes</h2>
 
@@ -184,7 +184,7 @@
 								<p class="text-gray-500 italic dark:text-gray-400">No notes were added.</p>
 							{/if}
 
-							{#if data.isOwner}
+							{#if data.canEdit}
 								<div
 									class="mt-5 flex flex-wrap items-center gap-4 border-t border-gray-200 pt-4 dark:border-gray-700"
 								>

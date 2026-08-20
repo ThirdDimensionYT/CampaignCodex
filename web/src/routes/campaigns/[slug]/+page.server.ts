@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { and, desc, eq } from 'drizzle-orm';
 
-import { requireCampaignAccess, requireOwner } from '$lib/server/auth/guards';
+import { requireCampaignAccess, requireCampaignEditor } from '$lib/server/auth/guards';
 import { campaigns, sessions } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 
 export const actions = {
 	createSession: async ({ cookies, request, params, platform }) => {
-		const db = await requireOwner(platform, cookies);
+		const db = await requireCampaignEditor(platform, cookies, params.slug);
 
 		const campaignResults = await db
 			.select()
@@ -117,7 +117,7 @@ export const actions = {
 		};
 	},
 	deleteSession: async ({ cookies, request, params, platform }) => {
-		const db = await requireOwner(platform, cookies);
+		const db = await requireCampaignEditor(platform, cookies, params.slug);
 		const formData = await request.formData();
 		const sessionId = String(formData.get('sessionId') ?? '').trim();
 

@@ -55,6 +55,31 @@ export const campaignAccessCredentials = sqliteTable(
 	(table) => [check('campaign_access_version_check', sql`${table.accessVersion} >= 1`)]
 );
 
+export const campaignEditorCredentials = sqliteTable(
+	'campaign_editor_credentials',
+	{
+		id: id(),
+		campaignId: text('campaign_id')
+			.notNull()
+			.references(() => campaigns.id, { onDelete: 'cascade' }),
+		label: text('label').notNull(),
+		normalizedLabel: text('normalized_label').notNull(),
+		passphraseHash: text('passphrase_hash').notNull(),
+		passphraseSalt: text('passphrase_salt').notNull(),
+		accessVersion: integer('access_version').notNull().default(1),
+		createdAt: createdAt(),
+		updatedAt: updatedAt()
+	},
+	(table) => [
+		uniqueIndex('campaign_editor_credentials_campaign_label_unique').on(
+			table.campaignId,
+			table.normalizedLabel
+		),
+		index('campaign_editor_credentials_campaign_idx').on(table.campaignId),
+		check('campaign_editor_credentials_version_check', sql`${table.accessVersion} >= 1`)
+	]
+);
+
 export const accessSessions = sqliteTable(
 	'access_sessions',
 	{
@@ -90,6 +115,29 @@ export const campaignAccessGrants = sqliteTable(
 		),
 		index('campaign_access_grants_campaign_idx').on(table.campaignId),
 		check('campaign_access_grants_version_check', sql`${table.accessVersion} >= 1`)
+	]
+);
+
+export const campaignEditorGrants = sqliteTable(
+	'campaign_editor_grants',
+	{
+		id: id(),
+		accessSessionId: text('access_session_id')
+			.notNull()
+			.references(() => accessSessions.id, { onDelete: 'cascade' }),
+		editorCredentialId: text('editor_credential_id')
+			.notNull()
+			.references(() => campaignEditorCredentials.id, { onDelete: 'cascade' }),
+		accessVersion: integer('access_version').notNull(),
+		createdAt: createdAt()
+	},
+	(table) => [
+		uniqueIndex('campaign_editor_grants_session_credential_unique').on(
+			table.accessSessionId,
+			table.editorCredentialId
+		),
+		index('campaign_editor_grants_credential_idx').on(table.editorCredentialId),
+		check('campaign_editor_grants_version_check', sql`${table.accessVersion} >= 1`)
 	]
 );
 

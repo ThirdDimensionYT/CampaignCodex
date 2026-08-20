@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 
-import { requireCampaignAccess, requireOwner } from '$lib/server/auth/guards';
+import { requireCampaignAccess, requireCampaignEditor } from '$lib/server/auth/guards';
 import { campaigns, entities } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 
 export const actions = {
 	delete: async ({ cookies, params, platform }) => {
-		const db = await requireOwner(platform, cookies);
+		const db = await requireCampaignEditor(platform, cookies, params.slug);
 
 		const campaignResults = await db
 			.select()

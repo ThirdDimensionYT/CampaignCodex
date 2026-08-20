@@ -1,7 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
-import { requireOwner } from '$lib/server/auth/guards';
+import { requireCampaignEditor } from '$lib/server/auth/guards';
 import { campaigns, entities, entityTypes } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -21,7 +21,7 @@ function isEntityType(value: string): value is EntityType {
 }
 
 export const load: PageServerLoad = async ({ cookies, params, platform }) => {
-	const db = await requireOwner(platform, cookies);
+	const db = await requireCampaignEditor(platform, cookies, params.slug);
 
 	const results = await db.select().from(campaigns).where(eq(campaigns.slug, params.slug)).limit(1);
 
@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 
 export const actions = {
 	default: async ({ cookies, request, params, platform }) => {
-		const db = await requireOwner(platform, cookies);
+		const db = await requireCampaignEditor(platform, cookies, params.slug);
 
 		const campaignResults = await db
 			.select()

@@ -2,7 +2,12 @@ import type { Cookies } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 
 import { getDb } from '$lib/server/db';
-import { accessSessions, campaignAccessGrants } from '$lib/server/db/schema';
+import {
+	accessSessions,
+	campaignAccessGrants,
+	campaignEditorCredentials,
+	campaignEditorGrants
+} from '$lib/server/db/schema';
 
 import { generateSessionToken, hashSessionToken } from './crypto';
 
@@ -149,6 +154,58 @@ export const hasCampaignAccess = async (
 				eq(campaignAccessGrants.accessSessionId, session.id),
 				eq(campaignAccessGrants.campaignId, campaignId),
 				eq(campaignAccessGrants.accessVersion, accessVersion)
+			)
+		)
+		.limit(1);
+
+	return grants.length > 0;
+};
+
+export const grantCampaignEditorAccess = async (
+	db: Database,
+	accessSessionId: string,
+	editorCredentialId: string,
+	accessVersion: number
+): Promise<void> => {
+	await db
+		.insert(campaignEditorGrants)
+		.values({
+			id: crypto.randomUUID(),
+			accessSessionId,
+			editorCredentialId,
+			accessVersion
+		})
+		.onConflictDoUpdate({
+			target: [campaignEditorGrants.accessSessionId, campaignEditorGrants.editorCredentialId],
+			set: { accessVersion }
+		});
+};
+
+export const hasCampaignEditAccess = async (
+	db: Database,
+	session: AccessSession | null,
+	campaignId: string
+): Promise<boolean> => {
+	if (session?.isOwner) {
+		return true;
+	}
+
+	if (!session) {
+		return false;
+	}
+
+	const grants = await db
+		.select({ id: campaignEditorGrants.id })
+		.from(campaignEditorGrants)
+		.innerJoin(
+			campaignEditorCredentials,
+			eq(campaignEditorGrants.editorCredentialId, campaignEditorCredentials.id)
+		)
+		.where(
+			and(
+				eq(campaignEditorGrants.accessSessionId, session.id),
+				eq(campaignEditorCredentials.campaignId, campaignId),
+				eq(campaignEditorGrants.accessVersion, campaignEditorCredentials.accessVersion)
 			)
 		)
 		.limit(1);
