@@ -73,7 +73,10 @@
 		{/if}
 	</header>
 
-	<nav class="flex gap-2 border-b border-gray-200 dark:border-gray-700" aria-label="Campaign">
+	<nav
+		class="flex gap-2 overflow-x-auto border-b border-gray-200 dark:border-gray-700"
+		aria-label="Campaign"
+	>
 		<a
 			href={resolve('/campaigns/[slug]/wiki', { slug: data.campaign.slug })}
 			class="border-b-2 border-transparent px-4 py-3 font-medium text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-white"
@@ -83,9 +86,15 @@
 		<a
 			href={resolve('/campaigns/[slug]', { slug: data.campaign.slug })}
 			aria-current="page"
-			class="border-b-2 border-purple-700 px-4 py-3 font-medium text-purple-700 dark:border-purple-400 dark:text-purple-400"
+			class="border-b-2 border-purple-700 px-4 py-3 font-medium whitespace-nowrap text-purple-700 dark:border-purple-400 dark:text-purple-400"
 		>
 			Sessions
+		</a>
+		<a
+			href={resolve('/campaigns/[slug]/map', { slug: data.campaign.slug })}
+			class="border-b-2 border-transparent px-4 py-3 font-medium whitespace-nowrap text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-white"
+		>
+			Map
 		</a>
 	</nav>
 

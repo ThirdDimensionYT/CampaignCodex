@@ -18,6 +18,12 @@
 	"ai": {
 		"binding": "AI"
 	},
+	"r2_buckets": [
+		{
+			"binding": "MAPS",
+			"bucket_name": "campaign-codex-maps"
+		}
+	],
 	"observability": {
 		"enabled": true
 	},

@@ -192,6 +192,57 @@ export const entities = sqliteTable(
 	]
 );
 
+export const campaignMaps = sqliteTable(
+	'campaign_maps',
+	{
+		id: id(),
+		campaignId: text('campaign_id')
+			.notNull()
+			.references(() => campaigns.id, { onDelete: 'cascade' }),
+		name: text('name').notNull().default('Regional map'),
+		objectKey: text('object_key').notNull(),
+		originalFilename: text('original_filename').notNull(),
+		contentType: text('content_type').notNull(),
+		sizeBytes: integer('size_bytes').notNull(),
+		createdAt: createdAt(),
+		updatedAt: updatedAt()
+	},
+	(table) => [
+		index('campaign_maps_campaign_idx').on(table.campaignId),
+		uniqueIndex('campaign_maps_object_key_unique').on(table.objectKey),
+		check('campaign_maps_size_check', sql`${table.sizeBytes} > 0`)
+	]
+);
+
+export const mapMarkers = sqliteTable(
+	'map_markers',
+	{
+		id: id(),
+		mapId: text('map_id')
+			.notNull()
+			.references(() => campaignMaps.id, { onDelete: 'cascade' }),
+		entityId: text('entity_id')
+			.notNull()
+			.references(() => entities.id, { onDelete: 'cascade' }),
+		positionX: integer('position_x').notNull(),
+		positionY: integer('position_y').notNull(),
+		createdAt: createdAt(),
+		updatedAt: updatedAt()
+	},
+	(table) => [
+		uniqueIndex('map_markers_map_entity_unique').on(table.mapId, table.entityId),
+		index('map_markers_entity_idx').on(table.entityId),
+		check(
+			'map_markers_position_x_check',
+			sql`${table.positionX} >= 0 and ${table.positionX} <= 10000`
+		),
+		check(
+			'map_markers_position_y_check',
+			sql`${table.positionY} >= 0 and ${table.positionY} <= 10000`
+		)
+	]
+);
+
 export const entityAliases = sqliteTable(
 	'entity_aliases',
 	{

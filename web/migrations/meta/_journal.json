@@ -36,6 +36,13 @@
       "when": 1787215913764,
       "tag": "0004_quiet_annihilus",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1787220489204,
+      "tag": "0005_tired_vindicator",
+      "breakpoints": true
     }
   ]
 }
