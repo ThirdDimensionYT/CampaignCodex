@@ -56,6 +56,20 @@
 					Access settings
 				</a>
 			</div>
+		{:else if data.hasEditorAccessConfigured && !data.canEdit}
+			<form
+				method="GET"
+				action={resolve('/campaigns/[slug]/unlock', { slug: data.campaign.slug })}
+				class="mt-4"
+			>
+				<input type="hidden" name="editor" value="1" />
+				<button
+					type="submit"
+					class="rounded border border-purple-700 px-4 py-2 font-medium text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-gray-800"
+				>
+					Editor sign in
+				</button>
+			</form>
 		{/if}
 	</header>
 

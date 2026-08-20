@@ -27,7 +27,7 @@ function openDatabase(platform: App.Platform | undefined) {
 	return getDb(platform.env.DB);
 }
 
-export const load: PageServerLoad = async ({ cookies, params, platform }) => {
+export const load: PageServerLoad = async ({ cookies, params, platform, url }) => {
 	const db = openDatabase(platform);
 
 	const campaignResults = await db
@@ -59,7 +59,11 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 		redirect(303, `/campaigns/${campaign.slug}/wiki`);
 	}
 
-	if (credential && (await hasCampaignAccess(db, session, campaign.id, credential.accessVersion))) {
+	if (
+		!url.searchParams.has('editor') &&
+		credential &&
+		(await hasCampaignAccess(db, session, campaign.id, credential.accessVersion))
+	) {
 		redirect(303, `/campaigns/${campaign.slug}/wiki`);
 	}
 
