@@ -174,6 +174,16 @@
 
 								{#if data.isOwner}
 									<a
+										href={resolve('/campaigns/[slug]/sessions/[sessionNumber]/wiki-updates', {
+											slug: data.campaign.slug,
+											sessionNumber: String(session.sessionNumber)
+										})}
+										class="font-medium text-purple-700 hover:underline dark:text-purple-400"
+									>
+										Generate wiki updates
+									</a>
+
+									<a
 										href={resolve('/campaigns/[slug]/sessions/[sessionNumber]/edit', {
 											slug: data.campaign.slug,
 											sessionNumber: String(session.sessionNumber)
