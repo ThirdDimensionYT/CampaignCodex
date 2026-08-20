@@ -159,20 +159,35 @@
 		{:else}
 			<div class="space-y-4">
 				{#each data.sessions as session (session.id)}
-					<article
-						class="rounded-lg border border-gray-200 p-5 dark:border-gray-700 dark:bg-gray-900"
+					<details
+						class="group rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900"
 					>
-						<div class="flex flex-wrap items-start justify-between gap-2">
-							<h3 class="text-xl font-semibold">
-								Session {session.sessionNumber}: {session.title}
-							</h3>
-
-							<div class="flex items-center gap-3">
-								<span class="text-sm text-gray-500 dark:text-gray-400">
+						<summary
+							class="cursor-pointer px-5 py-4 marker:text-purple-700 hover:bg-gray-50 dark:marker:text-purple-400 dark:hover:bg-gray-800"
+						>
+							<span class="ml-2 inline-flex flex-wrap items-baseline gap-x-3 gap-y-1">
+								<span class="text-xl font-semibold">
+									Session {session.sessionNumber}: {session.title}
+								</span>
+								<span class="text-sm font-normal text-gray-500 dark:text-gray-400">
 									{formatDate(session.sessionDate)}
 								</span>
+							</span>
+						</summary>
 
-								{#if data.isOwner}
+						<div class="border-t border-gray-200 px-5 py-5 dark:border-gray-700">
+							{#if session.rawNotes}
+								<p class="whitespace-pre-wrap text-gray-700 dark:text-gray-200">
+									{session.rawNotes}
+								</p>
+							{:else}
+								<p class="text-gray-500 italic dark:text-gray-400">No notes were added.</p>
+							{/if}
+
+							{#if data.isOwner}
+								<div
+									class="mt-5 flex flex-wrap items-center gap-4 border-t border-gray-200 pt-4 dark:border-gray-700"
+								>
 									<a
 										href={resolve('/campaigns/[slug]/sessions/[sessionNumber]/wiki-updates', {
 											slug: data.campaign.slug,
@@ -214,18 +229,10 @@
 											Delete
 										</button>
 									</form>
-								{/if}
-							</div>
+								</div>
+							{/if}
 						</div>
-
-						{#if session.rawNotes}
-							<p class="mt-4 whitespace-pre-wrap text-gray-700 dark:text-gray-200">
-								{session.rawNotes}
-							</p>
-						{:else}
-							<p class="mt-4 text-gray-500 italic dark:text-gray-400">No notes were added.</p>
-						{/if}
-					</article>
+					</details>
 				{/each}
 			</div>
 		{/if}
