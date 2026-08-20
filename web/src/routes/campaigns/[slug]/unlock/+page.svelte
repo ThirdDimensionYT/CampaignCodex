@@ -7,6 +7,8 @@
 	let { data, form }: PageProps = $props();
 	let showPassphrase = $state(false);
 	let showEditorPassword = $state(false);
+	let unlockingPlayer = $state(false);
+	let unlockingEditor = $state(false);
 </script>
 
 <svelte:head>
@@ -22,18 +24,33 @@
 		</p>
 	</header>
 
-	{#if form?.message}
-		<p
-			aria-live="polite"
-			class="rounded bg-red-100 p-3 text-red-800 dark:bg-red-950 dark:text-red-200"
-		>
-			{form.message}
-		</p>
-	{/if}
-
 	{#if data.hasPassphrase}
-		<form method="POST" use:enhance class="space-y-5">
+		<form
+			method="POST"
+			action="?/player"
+			use:enhance={() => {
+				unlockingPlayer = true;
+
+				return async ({ update }) => {
+					try {
+						await update();
+					} finally {
+						unlockingPlayer = false;
+					}
+				};
+			}}
+			class="space-y-5"
+		>
 			<h2 class="text-xl font-semibold">Player access</h2>
+
+			{#if form?.message && form.section === 'player'}
+				<p
+					aria-live="polite"
+					class="rounded bg-red-100 p-3 text-red-800 dark:bg-red-950 dark:text-red-200"
+				>
+					{form.message}
+				</p>
+			{/if}
 
 			<label class="block">
 				<span class="mb-1 block font-medium">Campaign passphrase</span>
@@ -59,9 +76,10 @@
 
 			<button
 				type="submit"
-				class="w-full rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
+				disabled={unlockingPlayer}
+				class="w-full rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800 disabled:cursor-wait disabled:opacity-60"
 			>
-				Unlock campaign
+				{unlockingPlayer ? 'Unlocking…' : 'Unlock campaign'}
 			</button>
 		</form>
 	{/if}
@@ -70,10 +88,29 @@
 		<form
 			method="POST"
 			action="?/editor"
-			use:enhance
+			use:enhance={() => {
+				unlockingEditor = true;
+
+				return async ({ update }) => {
+					try {
+						await update();
+					} finally {
+						unlockingEditor = false;
+					}
+				};
+			}}
 			class="space-y-5 border-t border-gray-200 pt-6 dark:border-gray-700"
 		>
 			<h2 class="text-xl font-semibold">Editor access</h2>
+
+			{#if form?.message && form.section === 'editor'}
+				<p
+					aria-live="polite"
+					class="rounded bg-red-100 p-3 text-red-800 dark:bg-red-950 dark:text-red-200"
+				>
+					{form.message}
+				</p>
+			{/if}
 
 			<label class="block">
 				<span class="mb-1 block font-medium">Editor password</span>
@@ -99,9 +136,10 @@
 
 			<button
 				type="submit"
-				class="w-full rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
+				disabled={unlockingEditor}
+				class="w-full rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800 disabled:cursor-wait disabled:opacity-60"
 			>
-				Unlock editor access
+				{unlockingEditor ? 'Unlocking…' : 'Unlock editor access'}
 			</button>
 		</form>
 	{/if}

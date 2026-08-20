@@ -58,7 +58,7 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 };
 
 export const actions = {
-	default: async ({ cookies, params, platform, request }) => {
+	player: async ({ cookies, params, platform, request }) => {
 		if (!platform) {
 			error(500, 'Cloudflare database binding is unavailable.');
 		}

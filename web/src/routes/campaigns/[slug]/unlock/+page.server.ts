@@ -82,7 +82,7 @@ export const load: PageServerLoad = async ({ cookies, params, platform, url }) =
 };
 
 export const actions = {
-	default: async ({ cookies, params, platform, request }) => {
+	player: async ({ cookies, params, platform, request }) => {
 		if (!platform) {
 			error(500, 'Cloudflare database binding is unavailable.');
 		}
@@ -94,6 +94,7 @@ export const actions = {
 		if (!passphrase || passphrase.length > 128) {
 			return fail(400, {
 				success: false,
+				section: 'player' as const,
 				message: 'Please enter a valid campaign passphrase.'
 			});
 		}
@@ -121,6 +122,7 @@ export const actions = {
 		if (!credential) {
 			return fail(403, {
 				success: false,
+				section: 'player' as const,
 				message: 'Player access has not been configured for this campaign.'
 			});
 		}
@@ -141,6 +143,7 @@ export const actions = {
 		if (!passphraseIsCorrect) {
 			return fail(401, {
 				success: false,
+				section: 'player' as const,
 				message: 'The campaign passphrase was not recognised.'
 			});
 		}
@@ -165,6 +168,7 @@ export const actions = {
 		if (!passphrase || passphrase.length > 128) {
 			return fail(400, {
 				success: false,
+				section: 'editor' as const,
 				message: 'Please enter a valid editor password.'
 			});
 		}
@@ -188,6 +192,7 @@ export const actions = {
 		if (credentials.length === 0) {
 			return fail(403, {
 				success: false,
+				section: 'editor' as const,
 				message: 'Editor access has not been configured for this campaign.'
 			});
 		}
@@ -207,6 +212,7 @@ export const actions = {
 		if (!credential) {
 			return fail(401, {
 				success: false,
+				section: 'editor' as const,
 				message: 'The editor password was not recognised.'
 			});
 		}

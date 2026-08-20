@@ -69,7 +69,7 @@
 		</p>
 	{/if}
 
-	<form method="POST" use:enhance class="space-y-5">
+	<form method="POST" action="?/player" use:enhance class="space-y-5">
 		<label class="block">
 			<span class="mb-1 block font-medium">
 				{data.hasPassphrase ? 'New player passphrase' : 'Player passphrase'}
