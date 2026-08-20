@@ -70,6 +70,7 @@ export const actions = {
 		if (passphrase.length < 8) {
 			return fail(400, {
 				success: false,
+				section: 'player' as const,
 				message: 'Use a passphrase containing at least 8 characters.'
 			});
 		}
@@ -77,6 +78,7 @@ export const actions = {
 		if (passphrase.length > 128) {
 			return fail(400, {
 				success: false,
+				section: 'player' as const,
 				message: 'The passphrase must be no more than 128 characters.'
 			});
 		}
@@ -118,6 +120,7 @@ export const actions = {
 
 		return {
 			success: true,
+			section: 'player' as const,
 			message: 'Campaign passphrase saved. Previous player access has been revoked.'
 		};
 	},
@@ -136,6 +139,7 @@ export const actions = {
 		if (label.length < 2 || label.length > 80) {
 			return fail(400, {
 				success: false,
+				section: 'editor' as const,
 				message: 'Enter a name between 2 and 80 characters for this editor.'
 			});
 		}
@@ -143,6 +147,7 @@ export const actions = {
 		if (passphrase.length < 12 || passphrase.length > 128) {
 			return fail(400, {
 				success: false,
+				section: 'editor' as const,
 				message: 'Editor passwords must contain between 12 and 128 characters.'
 			});
 		}
@@ -176,12 +181,14 @@ export const actions = {
 
 			return fail(409, {
 				success: false,
+				section: 'editor' as const,
 				message: `An editor named “${label}” already exists for this campaign.`
 			});
 		}
 
 		return {
 			success: true,
+			section: 'editor' as const,
 			message: `Editor access created for ${label}. You can now give them that password.`
 		};
 	},
@@ -215,6 +222,7 @@ export const actions = {
 		if (!editor) {
 			return fail(404, {
 				success: false,
+				section: 'editor' as const,
 				message: 'That editor could not be found.'
 			});
 		}
@@ -230,6 +238,7 @@ export const actions = {
 
 		return {
 			success: true,
+			section: 'editor' as const,
 			message: `Editor access for ${editor.label} was revoked.`
 		};
 	}

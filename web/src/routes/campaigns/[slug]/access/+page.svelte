@@ -7,6 +7,7 @@
 	let { data, form }: PageProps = $props();
 	let showPassphrase = $state(false);
 	let showEditorPassphrase = $state(false);
+	let creatingEditor = $state(false);
 </script>
 
 <svelte:head>
@@ -51,7 +52,7 @@
 		{/if}
 	</div>
 
-	{#if form?.message}
+	{#if form?.message && form.section === 'player'}
 		<p
 			aria-live="polite"
 			class="rounded p-3"
@@ -157,10 +158,38 @@
 		<form
 			method="POST"
 			action="?/createEditor"
-			use:enhance
+			novalidate
+			use:enhance={() => {
+				creatingEditor = true;
+
+				return async ({ update }) => {
+					try {
+						await update();
+					} finally {
+						creatingEditor = false;
+					}
+				};
+			}}
 			class="space-y-5 rounded border border-gray-200 p-5 dark:border-gray-700"
 		>
 			<h3 class="text-lg font-semibold">Add an editor</h3>
+
+			{#if form?.message && form.section === 'editor'}
+				<p
+					aria-live="polite"
+					class="rounded p-3"
+					class:bg-green-100={form.success}
+					class:text-green-800={form.success}
+					class:bg-red-100={!form.success}
+					class:text-red-800={!form.success}
+					class:dark:bg-green-950={form.success}
+					class:dark:text-green-200={form.success}
+					class:dark:bg-red-950={!form.success}
+					class:dark:text-red-200={!form.success}
+				>
+					{form.message}
+				</p>
+			{/if}
 
 			<label class="block">
 				<span class="mb-1 block font-medium">Editor name</span>
@@ -203,9 +232,10 @@
 
 			<button
 				type="submit"
-				class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800"
+				disabled={creatingEditor}
+				class="rounded bg-purple-700 px-4 py-2 font-medium text-white hover:bg-purple-800 disabled:cursor-wait disabled:opacity-60"
 			>
-				Create editor access
+				{creatingEditor ? 'Creating…' : 'Create editor access'}
 			</button>
 		</form>
 	</section>
