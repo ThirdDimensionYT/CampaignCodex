@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseProposedWikiChanges } from './wiki-suggestions';
+import { hasSourceMention, parseProposedWikiChanges } from './wiki-suggestions';
 
 describe('parseProposedWikiChanges', () => {
 	it('accepts valid create and update suggestions', () => {
@@ -43,5 +43,43 @@ describe('parseProposedWikiChanges', () => {
 		});
 
 		expect(parsed).toEqual({ suggestions: [] });
+	});
+});
+
+describe('hasSourceMention', () => {
+	it('rejects an entity name that does not occur in the session notes', () => {
+		expect(
+			hasSourceMention(
+				{
+					action: 'create',
+					existingSlug: null,
+					type: 'location',
+					name: 'Radiant Hall',
+					summary: 'A hall',
+					content: 'A hall',
+					reason: 'Suggested by the model'
+				},
+				'Kellen travelled to Blackstone Keep.',
+				[]
+			)
+		).toBe(false);
+	});
+
+	it('accepts the suggested or existing entry name when it occurs in the notes', () => {
+		expect(
+			hasSourceMention(
+				{
+					action: 'update',
+					existingSlug: 'kellen',
+					type: 'character',
+					name: 'Kellen',
+					summary: 'A player character',
+					content: 'Cast detect magic.',
+					reason: 'Kellen acted in the session'
+				},
+				'Kellen casts Detect Magic near the gate.',
+				[{ name: 'Kellen', slug: 'kellen' }]
+			)
+		).toBe(true);
 	});
 });

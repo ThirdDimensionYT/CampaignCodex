@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import { getEntityTypeLabel } from '$lib/entity-types';
-	import { wikiSuggestionTypes } from '$lib/wiki-suggestions';
+	import WikiSuggestionReviewCard from '$lib/components/WikiSuggestionReviewCard.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -131,88 +130,14 @@
 						Review {suggestions.length} proposed update{suggestions.length === 1 ? '' : 's'}
 					</h2>
 					<p class="mt-1 text-gray-600 dark:text-gray-300">
-						Untick anything you do not want to publish. You can edit the wording first.
+						Untick anything you do not want to publish. You can choose what kind of entry it is,
+						create a new entry, or add the information to an existing one.
 					</p>
 				</div>
 			</div>
 
 			{#each suggestions as suggestion, index (index)}
-				<article
-					class="rounded-lg border border-gray-200 p-5 dark:border-gray-700 dark:bg-gray-900"
-				>
-					<label class="flex items-start gap-3">
-						<input
-							type="checkbox"
-							name={`selected-${index}`}
-							checked
-							class="mt-1 h-5 w-5 rounded border-gray-300 text-purple-700"
-						/>
-						<span>
-							<span class="font-semibold">
-								{suggestion.action === 'create' ? 'Create new entry' : 'Update existing entry'}
-							</span>
-							<span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">
-								{suggestion.reason}
-							</span>
-						</span>
-					</label>
-
-					<div class="mt-5 grid gap-4 sm:grid-cols-2">
-						<label class="block">
-							<span class="mb-1 block font-medium">Entry type</span>
-							<select
-								name={`type-${index}`}
-								disabled={suggestion.action === 'update'}
-								class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 disabled:opacity-70 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
-							>
-								{#each wikiSuggestionTypes as type (type)}
-									<option value={type} selected={type === suggestion.type}>
-										{getEntityTypeLabel(type)}
-									</option>
-								{/each}
-							</select>
-							{#if suggestion.action === 'update'}
-								<input type="hidden" name={`type-${index}`} value={suggestion.type} />
-							{/if}
-						</label>
-
-						<label class="block">
-							<span class="mb-1 block font-medium">Name</span>
-							<input
-								type="text"
-								name={`name-${index}`}
-								value={suggestion.name}
-								readonly={suggestion.action === 'update'}
-								required
-								class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 read-only:opacity-70 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
-							/>
-						</label>
-					</div>
-
-					<label class="mt-4 block">
-						<span class="mb-1 block font-medium">Short summary</span>
-						<textarea
-							name={`summary-${index}`}
-							rows="2"
-							required
-							value={suggestion.summary}
-							class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
-						></textarea>
-					</label>
-
-					<label class="mt-4 block">
-						<span class="mb-1 block font-medium">
-							{suggestion.action === 'create' ? 'Wiki content' : 'New information to append'}
-						</span>
-						<textarea
-							name={`content-${index}`}
-							rows="5"
-							required
-							value={suggestion.content}
-							class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
-						></textarea>
-					</label>
-				</article>
+				<WikiSuggestionReviewCard {suggestion} {index} existingEntries={data.existingEntries} />
 			{/each}
 
 			<div class="flex flex-wrap gap-3">

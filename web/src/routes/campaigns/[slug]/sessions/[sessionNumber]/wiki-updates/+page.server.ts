@@ -16,8 +16,10 @@ import {
 	WIKI_SUGGESTION_MODEL
 } from '$lib/server/wiki-suggestion-generator';
 import {
+	hasSourceMention,
 	parseProposedWikiChanges,
 	type WikiSuggestion,
+	type WikiSuggestionAction,
 	type WikiSuggestionType
 } from '$lib/wiki-suggestions';
 
@@ -38,6 +40,10 @@ function makeSlug(name: string): string {
 
 function isEntityType(value: string): value is WikiSuggestionType {
 	return entityTypes.includes(value as WikiSuggestionType);
+}
+
+function isSuggestionAction(value: string): value is WikiSuggestionAction {
+	return value === 'create' || value === 'update';
 }
 
 async function getCampaignAndSession(
@@ -86,14 +92,41 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 		.orderBy(desc(noteImports.createdAt))
 		.limit(1);
 	const latestImport = importResults[0] ?? null;
+	const existingEntries = await db
+		.select({
+			type: entities.type,
+			name: entities.name,
+			slug: entities.slug,
+			summary: entities.summary
+		})
+		.from(entities)
+		.where(eq(entities.campaignId, campaign.id))
+		.orderBy(entities.name);
+
+	const proposedChanges = parseProposedWikiChanges(latestImport?.proposedChanges);
+	const summariesBySlug = new Map(existingEntries.map((entry) => [entry.slug, entry.summary]));
+	const reviewChanges = proposedChanges
+		? {
+				suggestions: proposedChanges.suggestions
+					.filter((suggestion) => hasSourceMention(suggestion, session.rawNotes, existingEntries))
+					.map((suggestion) => ({
+						...suggestion,
+						summary:
+							suggestion.action === 'update' && suggestion.existingSlug
+								? (summariesBySlug.get(suggestion.existingSlug) ?? suggestion.summary)
+								: suggestion.summary
+					}))
+			}
+		: null;
 
 	return {
 		campaign,
 		session,
+		existingEntries: existingEntries.map(({ type, name, slug }) => ({ type, name, slug })),
 		latestImport: latestImport
 			? {
 					...latestImport,
-					proposedChanges: parseProposedWikiChanges(latestImport.proposedChanges)
+					proposedChanges: reviewChanges
 				}
 			: null
 	};
@@ -206,22 +239,40 @@ export const actions = {
 			});
 		}
 
+		const existingReferences = await db
+			.select({ name: entities.name, slug: entities.slug })
+			.from(entities)
+			.where(eq(entities.campaignId, campaign.id));
+		const reviewSuggestions = proposedChanges.suggestions.filter((suggestion) =>
+			hasSourceMention(suggestion, session.rawNotes, existingReferences)
+		);
+
 		const selected: Array<{ original: WikiSuggestion; edited: WikiSuggestion }> = [];
 
-		for (const [index, original] of proposedChanges.suggestions.entries()) {
+		for (const [index, original] of reviewSuggestions.entries()) {
 			if (formData.get(`selected-${index}`) !== 'on') {
 				continue;
 			}
 
+			const action = String(formData.get(`action-${index}`) ?? original.action);
 			const type = String(formData.get(`type-${index}`) ?? original.type);
+			const existingSlugText = String(
+				formData.get(`existingSlug-${index}`) ?? original.existingSlug ?? ''
+			).trim();
 			const name = String(formData.get(`name-${index}`) ?? original.name).trim();
 			const summary = String(formData.get(`summary-${index}`) ?? '').trim();
 			const content = String(formData.get(`content-${index}`) ?? '').trim();
+			const editedType = isEntityType(type) ? type : original.type;
 
-			if (!isEntityType(type) || !name || !summary || !content) {
+			if (
+				!isSuggestionAction(action) ||
+				!content ||
+				(action === 'create' && (!isEntityType(type) || !name || !summary)) ||
+				(action === 'update' && !existingSlugText)
+			) {
 				return fail(400, {
 					success: false,
-					message: `Suggestion ${index + 1} needs a valid type, name, summary, and content.`
+					message: `Suggestion ${index + 1} needs a valid action, type, name, summary, content${action === 'update' ? ', and existing entry' : ''}.`
 				});
 			}
 
@@ -229,7 +280,9 @@ export const actions = {
 				original,
 				edited: {
 					...original,
-					type,
+					action,
+					existingSlug: action === 'update' ? existingSlugText.slice(0, 200) : null,
+					type: editedType,
 					name: name.slice(0, 160),
 					summary: summary.slice(0, 1_000),
 					content: content.slice(0, 12_000)
@@ -244,8 +297,8 @@ export const actions = {
 			});
 		}
 
-		for (const { original, edited } of selected) {
-			if (original.action === 'create') {
+		for (const { edited } of selected) {
+			if (edited.action === 'create') {
 				const slug = makeSlug(edited.name);
 
 				if (!slug) {
@@ -272,26 +325,23 @@ export const actions = {
 					.select({ id: entities.id })
 					.from(entities)
 					.where(
-						and(
-							eq(entities.campaignId, campaign.id),
-							eq(entities.slug, original.existingSlug ?? '')
-						)
+						and(eq(entities.campaignId, campaign.id), eq(entities.slug, edited.existingSlug ?? ''))
 					)
 					.limit(1);
 
 				if (!existing[0]) {
 					return fail(409, {
 						success: false,
-						message: `The existing wiki entry for “${original.name}” could not be found.`
+						message: `The selected existing wiki entry could not be found.`
 					});
 				}
 			}
 		}
 
-		for (const { original, edited } of selected) {
+		for (const { edited } of selected) {
 			let entityId: string;
 
-			if (original.action === 'create') {
+			if (edited.action === 'create') {
 				entityId = crypto.randomUUID();
 				await db.insert(entities).values({
 					id: entityId,
@@ -308,10 +358,7 @@ export const actions = {
 					.select()
 					.from(entities)
 					.where(
-						and(
-							eq(entities.campaignId, campaign.id),
-							eq(entities.slug, original.existingSlug ?? '')
-						)
+						and(eq(entities.campaignId, campaign.id), eq(entities.slug, edited.existingSlug ?? ''))
 					)
 					.limit(1);
 				const existing = existingResults[0];
@@ -336,7 +383,7 @@ export const actions = {
 
 				await db
 					.update(entities)
-					.set({ summary: edited.summary, content, updatedAt: new Date() })
+					.set({ content, updatedAt: new Date() })
 					.where(eq(entities.id, entityId));
 			}
 

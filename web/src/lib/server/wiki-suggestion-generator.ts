@@ -1,4 +1,5 @@
 import {
+	hasSourceMention,
 	parseProposedWikiChanges,
 	type ProposedWikiChanges,
 	type WikiSuggestion
@@ -135,7 +136,7 @@ Only suggest facts explicitly supported by the notes. Do not invent names, motiv
 Use "character" only for player characters and "npc" for non-player characters.
 Use action "update" only when the subject clearly matches an existing wiki entry. Copy that entry's exact slug into existingSlug.
 For a new entry use action "create" and an empty string for existingSlug.
-For an update, content must contain only the new information to append, while summary should be a concise revised summary.
+For an update, content must contain only the new information to append. Copy the existing entry's summary exactly into summary; never revise it from session events.
 For a new entry, content should be a short standalone wiki description.
 Keep all wording suitable for players and omit rules commentary or speculation.`
 				},
@@ -168,7 +169,11 @@ ${notes}
 			throw new Error('The AI returned suggestions in an unexpected format. Please try again.');
 		}
 
-		results.push(parsed.suggestions);
+		results.push(
+			parsed.suggestions.filter((suggestion) =>
+				hasSourceMention(suggestion, notes, input.existingEntries)
+			)
+		);
 	}
 
 	return { suggestions: mergeSuggestions(results) };

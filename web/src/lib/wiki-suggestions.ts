@@ -25,6 +25,43 @@ export type ProposedWikiChanges = {
 	suggestions: WikiSuggestion[];
 };
 
+type ExistingWikiReference = {
+	name: string;
+	slug: string;
+};
+
+function normalizeForMention(value: string): string {
+	return value
+		.normalize('NFKD')
+		.toLocaleLowerCase('en-GB')
+		.replace(/[^a-z0-9]+/g, ' ')
+		.trim();
+}
+
+export function hasSourceMention(
+	suggestion: WikiSuggestion,
+	sourceNotes: string,
+	existingEntries: ExistingWikiReference[]
+): boolean {
+	const normalizedNotes = ` ${normalizeForMention(sourceNotes)} `;
+	const possibleNames = [suggestion.name];
+
+	if (suggestion.existingSlug) {
+		const existingName = existingEntries.find(
+			(entry) => entry.slug === suggestion.existingSlug
+		)?.name;
+
+		if (existingName) {
+			possibleNames.push(existingName);
+		}
+	}
+
+	return possibleNames.some((name) => {
+		const normalizedName = normalizeForMention(name);
+		return normalizedName.length > 0 && normalizedNotes.includes(` ${normalizedName} `);
+	});
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
