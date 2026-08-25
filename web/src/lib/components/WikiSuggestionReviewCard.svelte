@@ -176,7 +176,8 @@
 			{/if}
 
 			<p class="text-sm text-gray-500 dark:text-gray-400">
-				The selected entry keeps its current name, type, and summary.
+				Only the new information below will be appended. The selected entry's name, type, and short
+				summary cannot be changed here.
 			</p>
 		</fieldset>
 	{:else}

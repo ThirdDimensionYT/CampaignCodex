@@ -16,9 +16,9 @@ import {
 	WIKI_SUGGESTION_MODEL
 } from '$lib/server/wiki-suggestion-generator';
 import {
+	buildExistingWikiEntryAiPatch,
 	hasSourceMention,
 	parseProposedWikiChanges,
-	type WikiSuggestion,
 	type WikiSuggestionAction,
 	type WikiSuggestionType
 } from '$lib/wiki-suggestions';
@@ -45,6 +45,22 @@ function isEntityType(value: string): value is WikiSuggestionType {
 function isSuggestionAction(value: string): value is WikiSuggestionAction {
 	return value === 'create' || value === 'update';
 }
+
+type SelectedSuggestion =
+	| {
+			action: 'create';
+			type: WikiSuggestionType;
+			name: string;
+			summary: string;
+			content: string;
+			reason: string;
+	  }
+	| {
+			action: 'update';
+			existingSlug: string;
+			content: string;
+			reason: string;
+	  };
 
 async function getCampaignAndSession(
 	db: Awaited<ReturnType<typeof requireCampaignEditor>>,
@@ -251,7 +267,7 @@ export const actions = {
 			hasSourceMention(suggestion, session.rawNotes, existingReferences)
 		);
 
-		const selected: Array<{ original: WikiSuggestion; edited: WikiSuggestion }> = [];
+		const selected: SelectedSuggestion[] = [];
 
 		for (const [index, original] of reviewSuggestions.entries()) {
 			if (formData.get(`selected-${index}`) !== 'on') {
@@ -259,38 +275,54 @@ export const actions = {
 			}
 
 			const action = String(formData.get(`action-${index}`) ?? original.action);
-			const type = String(formData.get(`type-${index}`) ?? original.type);
-			const existingSlugText = String(
-				formData.get(`existingSlug-${index}`) ?? original.existingSlug ?? ''
-			).trim();
-			const name = String(formData.get(`name-${index}`) ?? original.name).trim();
-			const summary = String(formData.get(`summary-${index}`) ?? '').trim();
 			const content = String(formData.get(`content-${index}`) ?? '').trim();
-			const editedType = isEntityType(type) ? type : original.type;
 
-			if (
-				!isSuggestionAction(action) ||
-				!content ||
-				(action === 'create' && (!isEntityType(type) || !name || !summary)) ||
-				(action === 'update' && !existingSlugText)
-			) {
+			if (!isSuggestionAction(action) || !content) {
 				return fail(400, {
 					success: false,
-					message: `Suggestion ${index + 1} needs a valid action, type, name, summary, content${action === 'update' ? ', and existing entry' : ''}.`
+					message: `Suggestion ${index + 1} needs a valid action and wiki content.`
+				});
+			}
+
+			if (action === 'update') {
+				const existingSlug = String(
+					formData.get(`existingSlug-${index}`) ?? original.existingSlug ?? ''
+				).trim();
+
+				if (!existingSlug) {
+					return fail(400, {
+						success: false,
+						message: `Suggestion ${index + 1} needs an existing wiki entry to update.`
+					});
+				}
+
+				selected.push({
+					action,
+					existingSlug: existingSlug.slice(0, 200),
+					content: content.slice(0, 12_000),
+					reason: original.reason
+				});
+				continue;
+			}
+
+			const type = String(formData.get(`type-${index}`) ?? original.type);
+			const name = String(formData.get(`name-${index}`) ?? original.name).trim();
+			const summary = String(formData.get(`summary-${index}`) ?? '').trim();
+
+			if (!isEntityType(type) || !name || !summary) {
+				return fail(400, {
+					success: false,
+					message: `Suggestion ${index + 1} needs a valid type, name, short summary, and wiki content.`
 				});
 			}
 
 			selected.push({
-				original,
-				edited: {
-					...original,
-					action,
-					existingSlug: action === 'update' ? existingSlugText.slice(0, 200) : null,
-					type: editedType,
-					name: name.slice(0, 160),
-					summary: summary.slice(0, 1_000),
-					content: content.slice(0, 12_000)
-				}
+				action,
+				type,
+				name: name.slice(0, 160),
+				summary: summary.slice(0, 1_000),
+				content: content.slice(0, 12_000),
+				reason: original.reason
 			});
 		}
 
@@ -301,14 +333,14 @@ export const actions = {
 			});
 		}
 
-		for (const { edited } of selected) {
-			if (edited.action === 'create') {
-				const slug = makeSlug(edited.name);
+		for (const suggestion of selected) {
+			if (suggestion.action === 'create') {
+				const slug = makeSlug(suggestion.name);
 
 				if (!slug) {
 					return fail(400, {
 						success: false,
-						message: `“${edited.name}” needs a name containing letters or numbers.`
+						message: `“${suggestion.name}” needs a name containing letters or numbers.`
 					});
 				}
 
@@ -321,7 +353,7 @@ export const actions = {
 				if (duplicates[0]) {
 					return fail(409, {
 						success: false,
-						message: `A wiki entry named “${edited.name}” already exists. Deselect it or update the existing entry manually.`
+						message: `A wiki entry named “${suggestion.name}” already exists. Deselect it or update the existing entry manually.`
 					});
 				}
 			} else {
@@ -329,7 +361,7 @@ export const actions = {
 					.select({ id: entities.id })
 					.from(entities)
 					.where(
-						and(eq(entities.campaignId, campaign.id), eq(entities.slug, edited.existingSlug ?? ''))
+						and(eq(entities.campaignId, campaign.id), eq(entities.slug, suggestion.existingSlug))
 					)
 					.limit(1);
 
@@ -342,19 +374,19 @@ export const actions = {
 			}
 		}
 
-		for (const { edited } of selected) {
+		for (const suggestion of selected) {
 			let entityId: string;
 
-			if (edited.action === 'create') {
+			if (suggestion.action === 'create') {
 				entityId = crypto.randomUUID();
 				await db.insert(entities).values({
 					id: entityId,
 					campaignId: campaign.id,
-					type: edited.type,
-					name: edited.name,
-					slug: makeSlug(edited.name),
-					summary: edited.summary,
-					content: edited.content,
+					type: suggestion.type,
+					name: suggestion.name,
+					slug: makeSlug(suggestion.name),
+					summary: suggestion.summary,
+					content: suggestion.content,
 					firstSessionId: session.id
 				});
 			} else {
@@ -362,7 +394,7 @@ export const actions = {
 					.select()
 					.from(entities)
 					.where(
-						and(eq(entities.campaignId, campaign.id), eq(entities.slug, edited.existingSlug ?? ''))
+						and(eq(entities.campaignId, campaign.id), eq(entities.slug, suggestion.existingSlug))
 					)
 					.limit(1);
 				const existing = existingResults[0];
@@ -380,14 +412,16 @@ export const actions = {
 					changeReason: `Before applying Session ${session.sessionNumber} AI suggestion`
 				});
 
-				const updateHeading = `Session ${session.sessionNumber} update`;
-				const content = existing.content.includes(edited.content)
-					? existing.content
-					: `${existing.content}${existing.content ? '\n\n' : ''}## ${updateHeading}\n${edited.content}`;
+				const patch = buildExistingWikiEntryAiPatch(
+					existing.content,
+					suggestion.content,
+					session.sessionNumber
+				);
 
 				await db
 					.update(entities)
-					.set({ content, updatedAt: new Date() })
+					// Deliberately omit summary: AI updates may only append wiki content.
+					.set({ ...patch, updatedAt: new Date() })
 					.where(eq(entities.id, entityId));
 			}
 
@@ -396,7 +430,7 @@ export const actions = {
 				.values({
 					sessionId: session.id,
 					entityId,
-					context: edited.reason
+					context: suggestion.reason
 				})
 				.onConflictDoNothing();
 		}

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { hasSourceMention, parseProposedWikiChanges } from './wiki-suggestions';
+import {
+	buildExistingWikiEntryAiPatch,
+	hasSourceMention,
+	parseProposedWikiChanges
+} from './wiki-suggestions';
 
 describe('parseProposedWikiChanges', () => {
 	it('accepts valid create and update suggestions', () => {
@@ -81,5 +85,30 @@ describe('hasSourceMention', () => {
 				[{ name: 'Kellen', slug: 'kellen' }]
 			)
 		).toBe(true);
+	});
+});
+
+describe('buildExistingWikiEntryAiPatch', () => {
+	it('only returns content and cannot replace an existing short summary', () => {
+		const patch = buildExistingWikiEntryAiPatch(
+			'Kellen is a player character.',
+			'Kellen cast Detect Magic at the gate.',
+			26
+		);
+
+		expect(patch).toEqual({
+			content:
+				'Kellen is a player character.\n\n## Session 26 update\nKellen cast Detect Magic at the gate.'
+		});
+		expect(patch).not.toHaveProperty('summary');
+	});
+
+	it('does not append the same information twice', () => {
+		const existing =
+			'Kellen is a player character.\n\n## Session 26 update\nKellen cast Detect Magic at the gate.';
+
+		expect(
+			buildExistingWikiEntryAiPatch(existing, 'Kellen cast Detect Magic at the gate.', 26)
+		).toEqual({ content: existing });
 	});
 });

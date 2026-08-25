@@ -25,6 +25,10 @@ export type ProposedWikiChanges = {
 	suggestions: WikiSuggestion[];
 };
 
+export type ExistingWikiEntryAiPatch = {
+	content: string;
+};
+
 type ExistingWikiReference = {
 	name: string;
 	slug: string;
@@ -60,6 +64,22 @@ export function hasSourceMention(
 		const normalizedName = normalizeForMention(name);
 		return normalizedName.length > 0 && normalizedNotes.includes(` ${normalizedName} `);
 	});
+}
+
+export function buildExistingWikiEntryAiPatch(
+	existingContent: string,
+	suggestedContent: string,
+	sessionNumber: number
+): ExistingWikiEntryAiPatch {
+	if (existingContent.includes(suggestedContent)) {
+		return { content: existingContent };
+	}
+
+	const separator = existingContent ? '\n\n' : '';
+
+	return {
+		content: `${existingContent}${separator}## Session ${sessionNumber} update\n${suggestedContent}`
+	};
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
