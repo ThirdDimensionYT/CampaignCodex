@@ -4,6 +4,10 @@
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+
+	function formatCredentialDate(date: Date): string {
+		return new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' }).format(date);
+	}
 </script>
 
 <svelte:head>
@@ -101,7 +105,11 @@
 	{/if}
 
 	<section>
-		<h2 class="mb-4 text-2xl font-semibold">Your campaigns and armouries</h2>
+		<h2 class="mb-2 text-2xl font-semibold">Your campaigns and armouries</h2>
+		<p class="mb-4 text-sm text-gray-600 dark:text-gray-300">
+			Passwords are securely stored and cannot be displayed after saving. This overview shows which
+			player and editor credentials are configured; use Access settings to replace them.
+		</p>
 
 		{#if data.campaigns.length === 0}
 			<p class="text-gray-600 dark:text-gray-300">You haven't created anything yet.</p>
@@ -118,7 +126,15 @@
 							<div class="flex flex-wrap items-center justify-between gap-2">
 								<h3 class="text-xl font-semibold">{campaign.name}</h3>
 								<span
-									class="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-semibold text-purple-800 dark:bg-purple-950 dark:text-purple-200"
+									class="rounded-full px-2.5 py-1 text-xs font-semibold"
+									class:bg-green-100={campaign.kind === 'armoury'}
+									class:text-green-800={campaign.kind === 'armoury'}
+									class:dark:bg-green-950={campaign.kind === 'armoury'}
+									class:dark:text-green-200={campaign.kind === 'armoury'}
+									class:bg-purple-100={campaign.kind === 'campaign'}
+									class:text-purple-800={campaign.kind === 'campaign'}
+									class:dark:bg-purple-950={campaign.kind === 'campaign'}
+									class:dark:text-purple-200={campaign.kind === 'campaign'}
 								>
 									{campaign.kind === 'armoury' ? 'Armoury' : 'Campaign'}
 								</span>
@@ -129,12 +145,52 @@
 							{/if}
 						</a>
 
-						{#if data.isOwner}
+						<div class="mt-3 grid gap-3 px-2 text-sm sm:grid-cols-2">
+							<div class="rounded bg-gray-50 p-3 dark:bg-gray-800">
+								<p class="font-semibold">Player access</p>
+								{#if campaign.playerCredential}
+									<p class="mt-1 text-green-700 dark:text-green-300">Password configured</p>
+									<p class="text-gray-500 dark:text-gray-400">
+										Last changed {formatCredentialDate(campaign.playerCredential.updatedAt)}
+									</p>
+								{:else}
+									<p class="mt-1 text-amber-700 dark:text-amber-300">No password configured</p>
+								{/if}
+							</div>
+
+							<div class="rounded bg-gray-50 p-3 dark:bg-gray-800">
+								<p class="font-semibold">Editor access</p>
+								{#if campaign.editors.length > 0}
+									<ul class="mt-1 space-y-1">
+										{#each campaign.editors as editor (editor.id)}
+											<li>
+												<span class="text-green-700 dark:text-green-300">{editor.label}</span>
+												<span class="text-gray-500 dark:text-gray-400">
+													— updated {formatCredentialDate(editor.updatedAt)}
+												</span>
+											</li>
+										{/each}
+									</ul>
+								{:else}
+									<p class="mt-1 text-amber-700 dark:text-amber-300">No editors configured</p>
+								{/if}
+							</div>
+						</div>
+
+						<div
+							class="mt-3 flex flex-wrap items-center gap-3 border-t border-gray-200 px-2 pt-3 dark:border-gray-700"
+						>
+							<a
+								href={resolve('/campaigns/[slug]/access', { slug: campaign.slug })}
+								class="rounded border border-purple-700 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50 dark:border-purple-400 dark:text-purple-400 dark:hover:bg-gray-800"
+							>
+								Manage access
+							</a>
+
 							<form
 								method="POST"
 								action="?/delete"
 								use:enhance
-								class="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700"
 								onsubmit={(event) => {
 									if (
 										!globalThis.confirm(
@@ -153,7 +209,7 @@
 									Delete {campaign.kind === 'armoury' ? 'armoury' : 'campaign'}
 								</button>
 							</form>
-						{/if}
+						</div>
 					</li>
 				{/each}
 			</ul>

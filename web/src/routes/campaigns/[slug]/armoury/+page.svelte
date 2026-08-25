@@ -21,9 +21,11 @@
 </svelte:head>
 
 <main class="mx-auto max-w-5xl space-y-8 p-6">
-	<a href={resolve('/')} class="text-purple-700 hover:underline dark:text-purple-400">
-		← All campaigns and armouries
-	</a>
+	{#if data.isOwner}
+		<a href={resolve('/')} class="text-purple-700 hover:underline dark:text-purple-400">
+			← All campaigns and armouries
+		</a>
+	{/if}
 
 	<header class="border-b border-gray-200 pb-6 dark:border-gray-700">
 		<div class="flex flex-wrap items-start justify-between gap-4">

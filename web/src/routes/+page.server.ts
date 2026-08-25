@@ -2,8 +2,13 @@ import { error, fail } from '@sveltejs/kit';
 import { asc, eq } from 'drizzle-orm';
 import { requireOwner } from '$lib/server/auth/guards';
 
-import { getDb } from '$lib/server/db';
-import { campaignKinds, campaignMaps, campaigns } from '$lib/server/db/schema';
+import {
+	campaignAccessCredentials,
+	campaignEditorCredentials,
+	campaignKinds,
+	campaignMaps,
+	campaigns
+} from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
 
@@ -21,21 +26,43 @@ function isCampaignKind(value: string): value is CampaignKind {
 	return campaignKinds.includes(value as CampaignKind);
 }
 
-function openDatabase(platform: App.Platform | undefined) {
-	if (!platform) {
-		throw new Error('Cloudflare bindings are not available. Run the app with npm run preview.');
+export const load: PageServerLoad = async ({ cookies, platform }) => {
+	const db = await requireOwner(platform, cookies);
+	const [campaignsList, playerCredentials, editorCredentials] = await Promise.all([
+		db.select().from(campaigns).orderBy(asc(campaigns.name)),
+		db
+			.select({
+				campaignId: campaignAccessCredentials.campaignId,
+				updatedAt: campaignAccessCredentials.updatedAt
+			})
+			.from(campaignAccessCredentials),
+		db
+			.select({
+				id: campaignEditorCredentials.id,
+				campaignId: campaignEditorCredentials.campaignId,
+				label: campaignEditorCredentials.label,
+				updatedAt: campaignEditorCredentials.updatedAt
+			})
+			.from(campaignEditorCredentials)
+			.orderBy(asc(campaignEditorCredentials.label))
+	]);
+	const playerCredentialsByCampaign = new Map(
+		playerCredentials.map((credential) => [credential.campaignId, credential])
+	);
+	const editorsByCampaign = new Map<string, Array<(typeof editorCredentials)[number]>>();
+
+	for (const editor of editorCredentials) {
+		const campaignEditors = editorsByCampaign.get(editor.campaignId) ?? [];
+		campaignEditors.push(editor);
+		editorsByCampaign.set(editor.campaignId, campaignEditors);
 	}
 
-	return getDb(platform.env.DB);
-}
-
-export const load: PageServerLoad = async ({ platform }) => {
-	const db = openDatabase(platform);
-
-	const campaignsList = await db.select().from(campaigns).orderBy(asc(campaigns.name));
-
 	return {
-		campaigns: campaignsList
+		campaigns: campaignsList.map((campaign) => ({
+			...campaign,
+			playerCredential: playerCredentialsByCampaign.get(campaign.id) ?? null,
+			editors: editorsByCampaign.get(campaign.id) ?? []
+		}))
 	};
 };
 

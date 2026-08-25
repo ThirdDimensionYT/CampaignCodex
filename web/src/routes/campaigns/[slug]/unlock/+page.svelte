@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { resolve } from '$app/paths';
 
 	import type { PageProps } from './$types';
 
@@ -149,8 +148,4 @@
 			Access has not been configured for this campaign. Please contact the campaign organiser.
 		</p>
 	{/if}
-
-	<a href={resolve('/')} class="inline-block text-purple-700 hover:underline dark:text-purple-400">
-		← Back to Campaign Codex
-	</a>
 </main>
