@@ -44,7 +44,7 @@
 								type="radio"
 								name="kind"
 								value="campaign"
-								checked={(form?.values.kind ?? 'campaign') === 'campaign'}
+								checked={(form?.values?.kind ?? 'campaign') === 'campaign'}
 								class="mr-2"
 							/>
 							<span class="font-semibold">Campaign</span>
@@ -57,7 +57,7 @@
 								type="radio"
 								name="kind"
 								value="armoury"
-								checked={form?.values.kind === 'armoury'}
+								checked={form?.values?.kind === 'armoury'}
 								class="mr-2"
 							/>
 							<span class="font-semibold">Armoury</span>
@@ -74,7 +74,7 @@
 						type="text"
 						name="name"
 						required
-						value={form?.values.name ?? ''}
+						value={form?.values?.name ?? ''}
 						class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 						placeholder="Name your campaign..."
 					/>
@@ -85,7 +85,7 @@
 					<textarea
 						name="description"
 						rows="4"
-						value={form?.values.description ?? ''}
+						value={form?.values?.description ?? ''}
 						class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 						placeholder="A short description of the campaign..."></textarea>
 				</label>
@@ -108,12 +108,12 @@
 		{:else}
 			<ul class="space-y-3">
 				{#each data.campaigns as campaign (campaign.id)}
-					<li>
+					<li class="rounded-lg border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-900">
 						<a
 							href={campaign.kind === 'armoury'
 								? resolve('/campaigns/[slug]/armoury', { slug: campaign.slug })
 								: resolve('/campaigns/[slug]/wiki', { slug: campaign.slug })}
-							class="block rounded-lg border border-gray-200 p-4 hover:border-purple-400 hover:bg-purple-50 dark:border-gray-700 dark:hover:border-purple-500 dark:hover:bg-gray-900"
+							class="block rounded p-2 hover:bg-purple-50 dark:hover:bg-gray-800"
 						>
 							<div class="flex flex-wrap items-center justify-between gap-2">
 								<h3 class="text-xl font-semibold">{campaign.name}</h3>
@@ -128,6 +128,32 @@
 								<p class="mt-1 text-gray-600 dark:text-gray-300">{campaign.description}</p>
 							{/if}
 						</a>
+
+						{#if data.isOwner}
+							<form
+								method="POST"
+								action="?/delete"
+								use:enhance
+								class="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700"
+								onsubmit={(event) => {
+									if (
+										!globalThis.confirm(
+											`Permanently delete “${campaign.name}” and everything stored inside it? This cannot be undone.`
+										)
+									) {
+										event.preventDefault();
+									}
+								}}
+							>
+								<input type="hidden" name="campaignId" value={campaign.id} />
+								<button
+									type="submit"
+									class="rounded border border-red-700 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-400 dark:text-red-400 dark:hover:bg-red-950"
+								>
+									Delete {campaign.kind === 'armoury' ? 'armoury' : 'campaign'}
+								</button>
+							</form>
+						{/if}
 					</li>
 				{/each}
 			</ul>
