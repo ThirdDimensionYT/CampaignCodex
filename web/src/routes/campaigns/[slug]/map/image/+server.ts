@@ -12,6 +12,11 @@ export const GET: RequestHandler = async ({ cookies, params, platform }) => {
 	}
 
 	const { db, campaign } = await requireCampaignAccess(platform, cookies, params.slug);
+
+	if (campaign.kind === 'armoury') {
+		error(404, 'Maps are not available for armouries.');
+	}
+
 	const mapResults = await db
 		.select({ objectKey: campaignMaps.objectKey })
 		.from(campaignMaps)

@@ -13,16 +13,22 @@
 
 <main class="mx-auto max-w-2xl space-y-6 p-6">
 	<a
-		href={resolve('/campaigns/[slug]', { slug: data.campaign.slug })}
+		href={resolve(
+			data.campaign.kind === 'armoury'
+				? `/campaigns/${data.campaign.slug}/armoury`
+				: `/campaigns/${data.campaign.slug}`
+		)}
 		class="text-purple-700 hover:underline dark:text-purple-400"
 	>
 		← Back to {data.campaign.name}
 	</a>
 
 	<header>
-		<h1 class="text-3xl font-bold">Edit campaign</h1>
+		<h1 class="text-3xl font-bold">
+			Edit {data.campaign.kind === 'armoury' ? 'armoury' : 'campaign'}
+		</h1>
 		<p class="mt-2 text-gray-600 dark:text-gray-300">
-			Change the campaign name or description. Its existing web address will stay the same.
+			Change the name or description. Its existing web address will stay the same.
 		</p>
 	</header>
 
@@ -34,7 +40,7 @@
 
 	<form method="POST" use:enhance class="space-y-4">
 		<label class="block">
-			<span class="mb-1 block font-medium">Campaign name</span>
+			<span class="mb-1 block font-medium">Name</span>
 			<input
 				type="text"
 				name="name"
@@ -63,7 +69,11 @@
 			</button>
 
 			<a
-				href={resolve('/campaigns/[slug]', { slug: data.campaign.slug })}
+				href={resolve(
+					data.campaign.kind === 'armoury'
+						? `/campaigns/${data.campaign.slug}/armoury`
+						: `/campaigns/${data.campaign.slug}`
+				)}
 				class="rounded border border-gray-300 px-4 py-2 font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
 			>
 				Cancel

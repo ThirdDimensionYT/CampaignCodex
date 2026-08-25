@@ -2,6 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
 import { requireOwner } from '$lib/server/auth/guards';
+import { getCampaignLandingPath } from '$lib/campaigns';
 import { campaigns } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -38,7 +39,7 @@ export const actions = {
 		}
 
 		const results = await db
-			.select({ id: campaigns.id, slug: campaigns.slug })
+			.select({ id: campaigns.id, slug: campaigns.slug, kind: campaigns.kind })
 			.from(campaigns)
 			.where(eq(campaigns.slug, params.slug))
 			.limit(1);
@@ -68,6 +69,6 @@ export const actions = {
 			});
 		}
 
-		redirect(303, `/campaigns/${campaign.slug}`);
+		redirect(303, getCampaignLandingPath(campaign));
 	}
 } satisfies Actions;

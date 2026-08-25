@@ -68,6 +68,10 @@ async function getCampaignAndSession(
 		error(404, 'Campaign not found.');
 	}
 
+	if (campaign.kind === 'armoury') {
+		error(404, 'Wiki updates are not available for armouries.');
+	}
+
 	const sessionResults = await db
 		.select()
 		.from(sessions)

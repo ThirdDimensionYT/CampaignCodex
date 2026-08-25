@@ -3,7 +3,7 @@ import { asc } from 'drizzle-orm';
 import { requireOwner } from '$lib/server/auth/guards';
 
 import { getDb } from '$lib/server/db';
-import { campaigns } from '$lib/server/db/schema';
+import { campaignKinds, campaigns } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
 
@@ -13,6 +13,12 @@ function makeSlug(name: string): string {
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-+|-+$/g, '');
+}
+
+type CampaignKind = (typeof campaignKinds)[number];
+
+function isCampaignKind(value: string): value is CampaignKind {
+	return campaignKinds.includes(value as CampaignKind);
 }
 
 function openDatabase(platform: App.Platform | undefined) {
@@ -40,12 +46,14 @@ export const actions = {
 
 		const name = String(formData.get('name') ?? '').trim();
 		const description = String(formData.get('description') ?? '').trim();
+		const kindText = String(formData.get('kind') ?? 'campaign');
+		const kind = isCampaignKind(kindText) ? kindText : 'campaign';
 
 		if (!name) {
 			return fail(400, {
 				success: false,
 				message: 'Please enter a campaign name.',
-				values: { name, description }
+				values: { name, description, kind }
 			});
 		}
 
@@ -55,7 +63,7 @@ export const actions = {
 			return fail(400, {
 				success: false,
 				message: 'The campaign name must contain letters or numbers.',
-				values: { name, description }
+				values: { name, description, kind }
 			});
 		}
 
@@ -63,6 +71,7 @@ export const actions = {
 			await db.insert(campaigns).values({
 				name,
 				slug,
+				kind,
 				description
 			});
 		} catch (error) {
@@ -71,14 +80,14 @@ export const actions = {
 			return fail(409, {
 				success: false,
 				message: 'A campaign with that name already exists.',
-				values: { name, description }
+				values: { name, description, kind }
 			});
 		}
 
 		return {
 			success: true,
-			message: 'Campaign created successfully.',
-			values: { name: '', description: '' }
+			message: `${kind === 'armoury' ? 'Armoury' : 'Campaign'} created successfully.`,
+			values: { name: '', description: '', kind: 'campaign' as const }
 		};
 	}
 } satisfies Actions;

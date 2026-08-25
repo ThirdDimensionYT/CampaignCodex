@@ -2,6 +2,7 @@ import { error, fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
 import { requireCampaignEditor } from '$lib/server/auth/guards';
+import { isArmouryEntityType } from '$lib/campaigns';
 import { campaigns, entities, entityTypes } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -20,7 +21,7 @@ function isEntityType(value: string): value is EntityType {
 	return entityTypes.includes(value as EntityType);
 }
 
-export const load: PageServerLoad = async ({ cookies, params, platform }) => {
+export const load: PageServerLoad = async ({ cookies, params, platform, url }) => {
 	const db = await requireCampaignEditor(platform, cookies, params.slug);
 
 	const results = await db.select().from(campaigns).where(eq(campaigns.slug, params.slug)).limit(1);
@@ -32,12 +33,16 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 	}
 
 	return {
-		campaign
+		campaign,
+		defaultType:
+			campaign.kind === 'armoury' && isArmouryEntityType(url.searchParams.get('type'))
+				? url.searchParams.get('type')
+				: 'character'
 	};
 };
 
 export const actions = {
-	default: async ({ cookies, request, params, platform }) => {
+	default: async ({ cookies, request, params, platform, url }) => {
 		const db = await requireCampaignEditor(platform, cookies, params.slug);
 
 		const campaignResults = await db
@@ -66,7 +71,10 @@ export const actions = {
 			content
 		};
 
-		if (!isEntityType(entityType)) {
+		if (
+			!isEntityType(entityType) ||
+			(campaign.kind === 'armoury' && !isArmouryEntityType(entityType))
+		) {
 			return fail(400, {
 				success: false,
 				message: 'Please select a valid entry type.',
@@ -118,7 +126,7 @@ export const actions = {
 			success: true,
 			message: 'Wiki entry saved successfully.',
 			values: {
-				type: 'character',
+				type: url.searchParams.get('type') ?? 'character',
 				name: '',
 				summary: '',
 				content: ''

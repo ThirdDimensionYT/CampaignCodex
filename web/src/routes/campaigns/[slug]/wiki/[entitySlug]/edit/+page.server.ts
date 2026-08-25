@@ -2,6 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 
 import { requireCampaignEditor } from '$lib/server/auth/guards';
+import { isArmouryEntityType } from '$lib/campaigns';
 import { campaigns, entities, entityTypes } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -95,7 +96,10 @@ export const actions = {
 			content
 		};
 
-		if (!isEntityType(entityType)) {
+		if (
+			!isEntityType(entityType) ||
+			(campaign.kind === 'armoury' && !isArmouryEntityType(entityType))
+		) {
 			return fail(400, {
 				success: false,
 				message: 'Please select a valid entry type.',

@@ -9,6 +9,10 @@ import type { Actions, PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 	const { db, campaign } = await requireCampaignAccess(platform, cookies, params.slug);
 
+	if (campaign.kind === 'armoury') {
+		redirect(303, `/campaigns/${campaign.slug}/armoury`);
+	}
+
 	const sessionList = await db
 		.select()
 		.from(sessions)
@@ -36,6 +40,10 @@ export const actions = {
 
 		if (!campaign) {
 			error(404, 'Campaign not found.');
+		}
+
+		if (campaign.kind === 'armoury') {
+			error(404, 'Sessions are not available for armouries.');
 		}
 
 		const formData = await request.formData();
@@ -131,6 +139,10 @@ export const actions = {
 
 		if (!campaign) {
 			error(404, 'Campaign not found.');
+		}
+
+		if (campaign.kind === 'armoury') {
+			error(404, 'Sessions are not available for armouries.');
 		}
 
 		const sessionResults = await db

@@ -49,11 +49,13 @@
 			>
 				<option value="character">{getEntityTypeLabel('character')}</option>
 				<option value="npc">{getEntityTypeLabel('npc')}</option>
-				<option value="location">{getEntityTypeLabel('location')}</option>
-				<option value="faction">{getEntityTypeLabel('faction')}</option>
 				<option value="item">{getEntityTypeLabel('item')}</option>
-				<option value="quest">{getEntityTypeLabel('quest')}</option>
-				<option value="other">{getEntityTypeLabel('other')}</option>
+				{#if data.campaign.kind === 'campaign'}
+					<option value="location">{getEntityTypeLabel('location')}</option>
+					<option value="faction">{getEntityTypeLabel('faction')}</option>
+					<option value="quest">{getEntityTypeLabel('quest')}</option>
+					<option value="other">{getEntityTypeLabel('other')}</option>
+				{/if}
 			</select>
 		</label>
 

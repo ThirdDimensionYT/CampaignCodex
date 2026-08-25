@@ -32,6 +32,10 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 		error(404, 'Campaign not found.');
 	}
 
+	if (campaign.kind === 'armoury') {
+		error(404, 'Sessions are not available for armouries.');
+	}
+
 	const sessionResults = await db
 		.select()
 		.from(sessions)
@@ -68,6 +72,10 @@ export const actions = {
 
 		if (!campaign) {
 			error(404, 'Campaign not found.');
+		}
+
+		if (campaign.kind === 'armoury') {
+			error(404, 'Sessions are not available for armouries.');
 		}
 
 		const sessionResults = await db

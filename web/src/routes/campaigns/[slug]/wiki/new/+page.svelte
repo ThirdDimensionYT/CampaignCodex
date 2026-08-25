@@ -13,18 +13,24 @@
 
 <main class="mx-auto max-w-3xl space-y-6 p-6">
 	<a
-		href={resolve('/campaigns/[slug]/wiki', {
-			slug: data.campaign.slug
-		})}
+		href={resolve(
+			data.campaign.kind === 'armoury'
+				? `/campaigns/${data.campaign.slug}/armoury`
+				: `/campaigns/${data.campaign.slug}/wiki`
+		)}
 		class="text-purple-700 hover:underline dark:text-purple-400"
 	>
-		← Back to Campaign Wiki
+		← Back to {data.campaign.kind === 'armoury' ? 'Armoury' : 'Campaign Wiki'}
 	</a>
 
 	<header>
-		<h1 class="text-3xl font-bold">Add a wiki entry</h1>
+		<h1 class="text-3xl font-bold">
+			Add {data.campaign.kind === 'armoury' ? 'an armoury entry' : 'a wiki entry'}
+		</h1>
 		<p class="mt-2 text-gray-600 dark:text-gray-300">
-			Create a character, location, faction, item or quest.
+			{data.campaign.kind === 'armoury'
+				? 'Create an item, Player Character or NPC record.'
+				: 'Create a character, location, faction, item or quest.'}
 		</p>
 	</header>
 
@@ -46,16 +52,18 @@
 
 			<select
 				name="type"
-				value={form?.values.type ?? 'character'}
+				value={form?.values.type ?? data.defaultType ?? 'character'}
 				class="w-full rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
 			>
 				<option value="character">{getEntityTypeLabel('character')}</option>
 				<option value="npc">{getEntityTypeLabel('npc')}</option>
-				<option value="location">{getEntityTypeLabel('location')}</option>
-				<option value="faction">{getEntityTypeLabel('faction')}</option>
 				<option value="item">{getEntityTypeLabel('item')}</option>
-				<option value="quest">{getEntityTypeLabel('quest')}</option>
-				<option value="other">{getEntityTypeLabel('other')}</option>
+				{#if data.campaign.kind === 'campaign'}
+					<option value="location">{getEntityTypeLabel('location')}</option>
+					<option value="faction">{getEntityTypeLabel('faction')}</option>
+					<option value="quest">{getEntityTypeLabel('quest')}</option>
+					<option value="other">{getEntityTypeLabel('other')}</option>
+				{/if}
 			</select>
 		</label>
 

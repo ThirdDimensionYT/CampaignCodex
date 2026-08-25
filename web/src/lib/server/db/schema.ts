@@ -10,6 +10,7 @@ export const entityTypes = [
 	'quest',
 	'other'
 ] as const;
+export const campaignKinds = ['campaign', 'armoury'] as const;
 export const sessionStatuses = ['draft', 'published'] as const;
 export const importStatuses = ['pending', 'approved', 'rejected', 'failed'] as const;
 
@@ -34,11 +35,15 @@ export const campaigns = sqliteTable(
 		id: id(),
 		name: text('name').notNull(),
 		slug: text('slug').notNull(),
+		kind: text('kind', { enum: campaignKinds }).notNull().default('campaign'),
 		description: text('description').notNull().default(''),
 		createdAt: createdAt(),
 		updatedAt: updatedAt()
 	},
-	(table) => [uniqueIndex('campaigns_slug_unique').on(table.slug)]
+	(table) => [
+		uniqueIndex('campaigns_slug_unique').on(table.slug),
+		check('campaigns_kind_check', sql`${table.kind} in ('campaign', 'armoury')`)
+	]
 );
 
 export const campaignAccessCredentials = sqliteTable(
@@ -189,6 +194,26 @@ export const entities = sqliteTable(
 			'entities_type_check',
 			sql`${table.type} in ('character', 'npc', 'location', 'faction', 'item', 'quest', 'other')`
 		)
+	]
+);
+
+export const armouryCheckouts = sqliteTable(
+	'armoury_checkouts',
+	{
+		itemEntityId: text('item_entity_id')
+			.primaryKey()
+			.references(() => entities.id, { onDelete: 'cascade' }),
+		campaignId: text('campaign_id')
+			.notNull()
+			.references(() => campaigns.id, { onDelete: 'cascade' }),
+		characterEntityId: text('character_entity_id')
+			.notNull()
+			.references(() => entities.id, { onDelete: 'cascade' }),
+		checkedOutAt: createdAt()
+	},
+	(table) => [
+		index('armoury_checkouts_campaign_idx').on(table.campaignId),
+		index('armoury_checkouts_character_idx').on(table.characterEntityId)
 	]
 );
 

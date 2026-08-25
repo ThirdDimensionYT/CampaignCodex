@@ -11,6 +11,7 @@ import {
 	readAccessSession
 } from '$lib/server/auth/session';
 import { getDb } from '$lib/server/db';
+import { getCampaignLandingPath } from '$lib/campaigns';
 import {
 	campaignAccessCredentials,
 	campaignEditorCredentials,
@@ -52,11 +53,11 @@ export const load: PageServerLoad = async ({ cookies, params, platform, url }) =
 	const session = await readAccessSession(db, cookies);
 
 	if (session?.isOwner) {
-		redirect(303, `/campaigns/${campaign.slug}/wiki`);
+		redirect(303, getCampaignLandingPath(campaign));
 	}
 
 	if (await hasCampaignEditAccess(db, session, campaign.id)) {
-		redirect(303, `/campaigns/${campaign.slug}/wiki`);
+		redirect(303, getCampaignLandingPath(campaign));
 	}
 
 	if (
@@ -64,7 +65,7 @@ export const load: PageServerLoad = async ({ cookies, params, platform, url }) =
 		credential &&
 		(await hasCampaignAccess(db, session, campaign.id, credential.accessVersion))
 	) {
-		redirect(303, `/campaigns/${campaign.slug}/wiki`);
+		redirect(303, getCampaignLandingPath(campaign));
 	}
 
 	return {
@@ -130,7 +131,7 @@ export const actions = {
 		let session = await readAccessSession(db, cookies);
 
 		if (session?.isOwner) {
-			redirect(303, `/campaigns/${campaign.slug}/wiki`);
+			redirect(303, getCampaignLandingPath(campaign));
 		}
 
 		const passphraseIsCorrect = await verifyCampaignPassphrase(
@@ -154,7 +155,7 @@ export const actions = {
 
 		await grantCampaignAccess(db, session.id, campaign.id, credential.accessVersion);
 
-		redirect(303, `/campaigns/${campaign.slug}/wiki`);
+		redirect(303, getCampaignLandingPath(campaign));
 	},
 	editor: async ({ cookies, params, platform, request }) => {
 		if (!platform) {
@@ -220,7 +221,7 @@ export const actions = {
 		let session = await readAccessSession(db, cookies);
 
 		if (session?.isOwner) {
-			redirect(303, `/campaigns/${campaign.slug}/wiki`);
+			redirect(303, getCampaignLandingPath(campaign));
 		}
 
 		if (!session) {
@@ -229,6 +230,6 @@ export const actions = {
 
 		await grantCampaignEditorAccess(db, session.id, credential.id, credential.accessVersion);
 
-		redirect(303, `/campaigns/${campaign.slug}/wiki`);
+		redirect(303, getCampaignLandingPath(campaign));
 	}
 } satisfies Actions;

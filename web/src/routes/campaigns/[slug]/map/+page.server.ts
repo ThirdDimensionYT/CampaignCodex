@@ -16,6 +16,11 @@ const allowedImageTypes = new Map([
 
 export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 	const { db, campaign } = await requireCampaignAccess(platform, cookies, params.slug);
+
+	if (campaign.kind === 'armoury') {
+		error(404, 'Maps are not available for armouries.');
+	}
+
 	const mapResults = await db
 		.select()
 		.from(campaignMaps)
@@ -80,7 +85,7 @@ export const actions = {
 
 		const db = await requireCampaignEditor(platform, cookies, params.slug);
 		const campaignResults = await db
-			.select({ id: campaigns.id, slug: campaigns.slug })
+			.select({ id: campaigns.id, slug: campaigns.slug, kind: campaigns.kind })
 			.from(campaigns)
 			.where(eq(campaigns.slug, params.slug))
 			.limit(1);
@@ -88,6 +93,10 @@ export const actions = {
 
 		if (!campaign) {
 			error(404, 'Campaign not found.');
+		}
+
+		if (campaign.kind === 'armoury') {
+			error(404, 'Maps are not available for armouries.');
 		}
 
 		const formData = await request.formData();
@@ -238,7 +247,7 @@ export const actions = {
 		}
 
 		const campaignResults = await db
-			.select({ id: campaigns.id })
+			.select({ id: campaigns.id, kind: campaigns.kind })
 			.from(campaigns)
 			.where(eq(campaigns.slug, params.slug))
 			.limit(1);
@@ -246,6 +255,10 @@ export const actions = {
 
 		if (!campaign) {
 			error(404, 'Campaign not found.');
+		}
+
+		if (campaign.kind === 'armoury') {
+			error(404, 'Maps are not available for armouries.');
 		}
 
 		const mapResults = await db
@@ -313,7 +326,7 @@ export const actions = {
 		const formData = await request.formData();
 		const markerId = String(formData.get('markerId') ?? '').trim();
 		const markerResults = await db
-			.select({ id: mapMarkers.id, name: entities.name })
+			.select({ id: mapMarkers.id, name: entities.name, campaignKind: campaigns.kind })
 			.from(mapMarkers)
 			.innerJoin(campaignMaps, eq(mapMarkers.mapId, campaignMaps.id))
 			.innerJoin(campaigns, eq(campaignMaps.campaignId, campaigns.id))
@@ -328,6 +341,10 @@ export const actions = {
 				section: 'marker' as const,
 				message: 'That map marker could not be found.'
 			});
+		}
+
+		if (marker.campaignKind === 'armoury') {
+			error(404, 'Maps are not available for armouries.');
 		}
 
 		await db.delete(mapMarkers).where(eq(mapMarkers.id, marker.id));

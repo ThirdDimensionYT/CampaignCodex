@@ -2,6 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 
 import { requireCampaignAccess, requireCampaignEditor } from '$lib/server/auth/guards';
+import { getCampaignLandingPath, isArmouryEntityType } from '$lib/campaigns';
 import { campaigns, entities } from '$lib/server/db/schema';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -19,6 +20,10 @@ export const load: PageServerLoad = async ({ cookies, params, platform }) => {
 
 	if (!entity) {
 		error(404, 'Wiki entry not found.');
+	}
+
+	if (campaign.kind === 'armoury' && !isArmouryEntityType(entity.type)) {
+		error(404, 'Armoury entry not found.');
 	}
 
 	return {
@@ -69,6 +74,6 @@ export const actions = {
 			});
 		}
 
-		redirect(303, `/campaigns/${campaign.slug}/wiki`);
+		redirect(303, getCampaignLandingPath(campaign));
 	}
 } satisfies Actions;

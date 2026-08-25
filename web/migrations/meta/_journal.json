@@ -43,6 +43,13 @@
       "when": 1787220489204,
       "tag": "0005_tired_vindicator",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1787657652020,
+      "tag": "0006_smart_toxin",
+      "breakpoints": true
     }
   ]
 }
